@@ -70,3 +70,11 @@ python3 -m http.server 5179
 ```
 
 http://localhost:5179/sunbit.html?test 로 열어요.
+
+---
+
+## 제작자
+
+**sungomi** · [github.com/sungomi](https://github.com/sungomi)
+
+라이선스: [MIT License](LICENSE)
