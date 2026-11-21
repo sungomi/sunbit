@@ -248,11 +248,13 @@ function drawMob(
     ctx.font = `${Math.round(sz * 0.42)}px "Apple Color Emoji","Segoe UI Emoji",sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#000';
     ctx.fillText('👑', 0, -2 * r + sz * 0.08);
   } else {
     ctx.font = `${sz}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = '#000'; // 그림자 색(반투명)이 남아 있으면 이모지도 흐려져요
     ctx.fillText(look.emoji, 0, -sz * 0.12);
   }
   ctx.restore();

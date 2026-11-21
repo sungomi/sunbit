@@ -407,7 +407,7 @@ export const GameTab: React.FC<GameTabProps> = ({
               e.stopPropagation();
               inputRef.current.skillEPressed = true;
             }}
-            title="버닝 소울 (MP 25)"
+            title="불곰혼 (MP 25)"
           >
             <span className="qs-key">E</span>
             <span className="qs-emoji">🌋</span>
@@ -473,7 +473,7 @@ export const GameTab: React.FC<GameTabProps> = ({
               inputRef.current.skillWPressed = true;
             }}
           >
-            {cdW > 0 ? `${cdW}s` : '✖️ 인사이징(W)'}
+            {cdW > 0 ? `${cdW}s` : '✖️ 할퀴기(W)'}
           </button>
           <button
             className={`pixel-btn ${
