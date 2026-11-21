@@ -55,7 +55,7 @@ let G = null, G_UID = null, G_DIRTY = false, G_SAVED_AT = 0;
 // GV = 화면 상태(저장 안 함)
 const GV = { view: 'hunt', mob: null, run: null, duelPick: null, duel: null, duelStep: -1, busy: false, lastAuto: 0 };
 
-function gFresh() {
+function gmFresh() {
   return { v: 2, honey: 0, lv: 1, exp: 0, zone: 0, kills: 0,
     gear: { w: { t: 0, s: 0 }, h: { t: 0, s: 0 }, a: { t: 0, s: 0 }, g: { t: 0, s: 0 }, b: { t: 0, s: 0 } },
     tower: { best: 0, bestAt: 0, week: gWeek(), weekBest: 0, beat: 0 },
@@ -65,14 +65,14 @@ function gLoad() {
   if (!S.me || S.uid === G_UID) return;
   G_UID = S.uid;
   const r = S.me.rpg;
-  if (r && r.v === 2) { const f = gFresh(); G = { ...f, ...r, gear: { ...f.gear, ...(r.gear || {}) }, tower: { ...f.tower, ...(r.tower || {}) }, duel: { ...f.duel, ...(r.duel || {}) }, out: { ...f.out, ...(r.out || {}) } }; }
-  else { G = gFresh(); if (r && typeof r.meso === 'number') G.honey = Math.max(0, Math.floor(r.meso)); } // 예전 쌀먹 버전에서 산 쌀은 꿀로 1:1
+  if (r && r.v === 2) { const f = gmFresh(); G = { ...f, ...r, gear: { ...f.gear, ...(r.gear || {}) }, tower: { ...f.tower, ...(r.tower || {}) }, duel: { ...f.duel, ...(r.duel || {}) }, out: { ...f.out, ...(r.out || {}) } }; }
+  else { G = gmFresh(); if (r && typeof r.meso === 'number') G.honey = Math.max(0, Math.floor(r.meso)); } // 예전 쌀먹 버전에서 산 쌀은 꿀로 1:1
   G.power = gPower(gStats());
 }
 
 /* ───────── 능력치 ───────── */
 function gStats(g = G) {
-  const gear = (g && g.gear) || gFresh().gear, lv = (g && g.lv) || 1;
+  const gear = (g && g.gear) || gmFresh().gear, lv = (g && g.lv) || 1;
   const val = k => { const x = gear[k] || { t: 0, s: 0 }; return { v: G_SLOT[k].v[x.t] || 0, s: x.s || 0 }; };
   const w = val('w'), a = val('a'), h = val('h'), gl = val('g'), b = val('b');
   const atk = Math.round((10 + w.v * starMul(w.s) + a.v * starMul(a.s)) * (1 + 0.03 * (lv - 1)));
@@ -207,7 +207,7 @@ function gEndRun(why) {
   GV.result = { why, cleared, from: run.from, newBest: cleared > old, earned: run.earned };
   gNewMob(); renderGame();
 }
-function gTick() {
+function gmTick() {
   if (!G) return;
   const t = now();
   if (GV.run && t >= GV.run.ends) { gEndRun('time'); return; }
@@ -217,7 +217,7 @@ function gTick() {
   }
   gAutosave();
 }
-setInterval(gTick, 250);
+setInterval(gmTick, 250);
 
 /* ───────── 장비 · 강화 ───────── */
 function gBuyTier(k) {
