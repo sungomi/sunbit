@@ -1304,3 +1304,21 @@ body.bnbody{background-image:linear-gradient(rgba(255,255,255,.84),rgba(255,255,
 .bty-chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
 .bty-rules{margin:4px 0 8px;padding-left:18px;display:flex;flex-direction:column;gap:4px;font-size:11.5px;font-weight:600;color:var(--dim);line-height:1.4}
 .bty-go{background:linear-gradient(120deg,#92400e,#d97706)}
+/* ═════════ ⚔️ 쌀먹의신 연동 ═════════ */
+.nav-in{grid-template-columns:repeat(5,1fr)!important}
+.nav button.ng{color:#c2410c}
+.rpg-wrap{position:fixed;inset:0;z-index:50;background:#0d0a16}
+.rpg-wrap[hidden]{display:none}
+.rpg-wrap iframe{width:100%;height:100%;border:0;display:block}
+.rpg-card{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px;padding:12px 14px;border-radius:16px;background:#1b162a;color:#f8f9fa;width:100%;text-align:left}
+.rpg-card.empty{flex-direction:row;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.rpg-card.empty span{font-size:22px} .rpg-card.empty small{flex-basis:100%;color:#b1a7cf;font-size:12px}
+.rpg-top{display:flex;align-items:center;gap:10px}
+.rpg-ic{font-size:24px}
+.rpg-id{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.rpg-id b{font-size:15px;font-weight:800} .rpg-id small{font-size:12px;color:#b1a7cf}
+.rpg-go{flex:none;padding:9px 12px;border-radius:10px;background:#ffd43b;color:#1b162a;font-weight:900;font-size:13px}
+.rpg-go.red{background:#ff4d4f;color:#fff}
+.rpg-gear{display:flex;flex-wrap:wrap;gap:5px}
+.rpg-g{font-size:11.5px;padding:3px 8px;border-radius:99px;background:#32294d}
+.rpg-g b{color:#ffd43b}
