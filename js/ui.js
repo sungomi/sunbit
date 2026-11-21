@@ -240,8 +240,9 @@ function renderFeed() {
 let chipsTouchAt = 0;
 function renderAll() {
   // 1초마다 새로 그릴 땐 상점(입력칸 있음)은 건너뛰어요
-  const R = { home: renderHome, coin: renderCoins, assets: renderMe, shop: renderShop }[S.tab];
-  if (R && !(S.liveOnly && (S.tab === 'shop' || Date.now() - chipsTouchAt < 1500))) R();
+  const R = { home: renderHome, coin: renderCoins, assets: renderMe, shop: renderShop, game: renderGame }[S.tab];
+  if (S.tab === 'game' && S.liveOnly) gLive();   // 게임 탭은 1초마다 다시 그리지 않고 숫자만 바꿔요
+  else if (R && !(S.liveOnly && (S.tab === 'shop' || Date.now() - chipsTouchAt < 1500))) R();
   const latest = S.feed.find(f => f.uid !== S.uid && brag(f));
   $('#feedDot').hidden = S.board === 'feed' || !latest || latest.ts <= S.feedSeen;
   if (S.board && S.board !== 'log' && !S.liveOnly) renderBoard();
@@ -251,7 +252,7 @@ function renderAll() {
 }
 function goTab(name) {
   S.tab = name; document.querySelectorAll('.nav [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === name));
-  ['home', 'coin', 'shop', 'assets'].forEach(n => $('#tab-' + (n === 'assets' ? 'wallet' : n)).hidden = n !== name);
+  ['home', 'coin', 'shop', 'assets', 'game'].forEach(n => $('#tab-' + (n === 'assets' ? 'wallet' : n)).hidden = n !== name);
   const bb = $('#boardBtn'); if (bb) bb.hidden = name !== 'home';
   const lb = $('#logBtn'); if (lb) lb.hidden = name !== 'home';
   const gb = $('#promoGo'); if (gb) gb.hidden = CASINO_OFF || name !== 'coin';
