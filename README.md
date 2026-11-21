@@ -78,3 +78,14 @@ http://localhost:5179/sunbit.html?test 로 열어요.
 **sungomi** · [github.com/sungomi](https://github.com/sungomi)
 
 라이선스: [MIT License](LICENSE)
+
+## ⚔️ 곰사냥 (게임 탭)
+
+아래 메뉴 "게임"을 누르면 횡스크롤 사냥 게임이 떠요. 소스는 `game/`(React + Vite), 빌드 결과는 `rpg/`예요.
+
+```bash
+cd game && npm install && npm run build   # rpg/ 폴더가 새로 만들어져요
+```
+
+`js/`·`css/`처럼 `rpg/`를 바꿨을 때도 `sunbit.html`의 `?v=`를 올려 주세요 (게임 화면 주소에 같은 숫자를 붙여요).
+캐릭터는 지갑 문서의 `rpg` 칸에 저장돼요. 원 ↔ 🍯꿀 환전(수수료 3% / 10%, 꿀→원 하루 3억원), 곰굴 탑 100층 최종보스는 말레이곰이에요.
