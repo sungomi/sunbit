@@ -114,7 +114,9 @@ async function firebaseBackend(cfg) {
       });
     }).catch(mapErr),
     onUser: cb => auM.onAuthStateChanged(auth, cb),
-    signIn: async () => { const pr = new auM.GoogleAuthProvider(); pr.setCustomParameters({ prompt: 'select_account' }); try { await auM.signInWithPopup(auth, pr); } catch (e) { if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) await auM.signInWithRedirect(auth, pr); else throw e; } },
+    // 로그인: 팝업이 기본. 팝업이 막히면 페이지 이동(redirect)으로. 실패하면 이유를 화면에 보여줘요.
+    signIn: async () => { const pr = new auM.GoogleAuthProvider(); pr.setCustomParameters({ prompt: 'select_account' }); try { await auM.signInWithPopup(auth, pr); } catch (e) { if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) { LS.set('authRedirectAt', Date.now()); await auM.signInWithRedirect(auth, pr); } else if (e && (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request')) return; else throw e; } },
+    redirectResult: () => auM.getRedirectResult(auth),
     signOut: () => auM.signOut(auth),
   };
 }
@@ -123,6 +125,11 @@ async function bootFirebase(cfg) {
   let fb;
   try { fb = await firebaseBackend(cfg); } catch (e) { $('#loginMsg').textContent = '서버에 연결하지 못했어요. 연습 모드로 둘러볼 수 있어요.'; return; }
   S.fb = fb; let started = false;
+  // 페이지 이동 방식으로 로그인하고 돌아왔는데 실패했으면 이유를 알려줘요 (브라우저가 다른 사이트 저장소를 막으면 자주 생겨요)
+  fb.redirectResult().then(r => {
+    const tried = Date.now() - LS.get('authRedirectAt', 0) < 10 * 60e3; LS.set('authRedirectAt', 0);
+    if (!r && tried && !(S.uid)) $('#loginMsg').textContent = '로그인 정보를 못 받아왔어요. 이 브라우저가 로그인 창을 막는 것 같아요. 크롬이나 사파리로 열어서 다시 눌러 주세요.';
+  }).catch(e => { $('#loginMsg').textContent = '로그인하지 못했어요 (' + ((e && e.code) || '알 수 없음') + '). 크롬이나 사파리로 열어서 다시 해 주세요.'; });
   fb.onUser(u => {
     if (!u) { S.userEmail = ''; L.hidden = false; document.body.classList.add('noscroll'); return; }
     S.userEmail = u.email || '';

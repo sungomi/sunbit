@@ -42,7 +42,13 @@ document.addEventListener('click', e => {
     case 'renameBtn': doRename(); break;
     case 'joinBtn': doJoin(); break;
     case 'sheetX': case 'sheetX2': closeSheet(); break;
-    case 'googleBtn': t.disabled = true; S.fb.signIn().catch(() => toast('로그인하지 못했어요. 다시 시도해 주세요.')).finally(() => { t.disabled = false; }); break;
+    case 'googleBtn': {
+      // 카카오톡·인스타 같은 앱 안 브라우저는 Google 로그인이 막혀요 → 바깥 브라우저로 열어요
+      const ua = navigator.userAgent || '';
+      if (/KAKAOTALK/i.test(ua)) { location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href); break; }
+      if (/Instagram|FBAN|FBAV|NAVER\(inapp|Line\/|DaumApps|everytimeApp/i.test(ua)) { $('#loginMsg').textContent = '앱 안 브라우저에선 Google 로그인이 안 돼요. 오른쪽 위 메뉴에서 "다른 브라우저로 열기"를 눌러 주세요.'; break; }
+      t.disabled = true; S.fb.signIn().catch(e => { const c = (e && e.code) || ''; $('#loginMsg').textContent = '로그인하지 못했어요' + (c ? ` (${c})` : '') + '. 다시 눌러 주세요.'; toast('로그인하지 못했어요. 다시 시도해 주세요.'); }).finally(() => { t.disabled = false; }); break;
+    }
     case 'demoBtn': $('#login').hidden = true; document.body.classList.remove('noscroll'); startDemo(); break;
     case 'logoutBtn': case 'switchAcctBtn': if (S.fb) S.fb.signOut().then(() => location.reload()); break;
   }
