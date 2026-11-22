@@ -57,8 +57,23 @@ export const GameTab: React.FC<GameTabProps> = ({
   onDojoQuit,
 }) => {
   const [showEquip, setShowEquip] = useState(false);
-  const [padDir, setPadDir] = useState<'none' | 'left' | 'right' | 'up' | 'down'>('none');
-  const wasUpRef = useRef(false);
+  const [knob, setKnob] = useState({ x: 0, y: 0 });
+  const [auto, setAutoRaw] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('gom_auto') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const setAuto = (v: boolean) => {
+    setAutoRaw(v);
+    try {
+      localStorage.setItem('gom_auto', v ? '1' : '0');
+    } catch {
+      /* 저장 못 해도 괜찮아요 */
+    }
+  };
+  const potAtRef = useRef(0);
 
   const haptic = (ms = 10) => {
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
@@ -66,40 +81,29 @@ export const GameTab: React.FC<GameTabProps> = ({
     }
   };
 
-  const handleSlidePad = (e: React.PointerEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const dx = e.clientX - (rect.left + rect.width / 2);
-    const dy = e.clientY - (rect.top + rect.height / 2);
-    inputRef.current.left = dx < -10;
-    inputRef.current.right = dx > 10;
-    inputRef.current.up = dy < -12;
-    inputRef.current.down = dy > 14;
-
-    // Edge-trigger Jump / Flash Jump when sliding into upper zone (supports diagonal up-left / up-right!)
-    if (dy < -12 && !wasUpRef.current) {
-      inputRef.current.jumpPressed = true;
-      haptic(8);
+  // 조이스틱: 가운데에서 끈 만큼 이동 (좌우), 위아래는 사다리
+  const moveStick = (e: React.PointerEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    let dx = e.clientX - (r.left + r.width / 2);
+    let dy = e.clientY - (r.top + r.height / 2);
+    const max = r.width * 0.32;
+    const len = Math.hypot(dx, dy);
+    if (len > max) {
+      dx = (dx / len) * max;
+      dy = (dy / len) * max;
     }
-    wasUpRef.current = dy < -12;
-
-    if (Math.hypot(dx, dy) < 10) {
-      setPadDir('none');
-    } else if (dy < -12 && Math.abs(dy) >= Math.abs(dx) * 0.7) {
-      setPadDir('up');
-    } else if (dy > 14 && Math.abs(dy) >= Math.abs(dx) * 0.7) {
-      setPadDir('down');
-    } else {
-      setPadDir(dx < 0 ? 'left' : 'right');
-    }
+    setKnob({ x: dx, y: dy });
+    inputRef.current.left = dx < -max * 0.3;
+    inputRef.current.right = dx > max * 0.3;
+    inputRef.current.up = dy < -max * 0.55;
+    inputRef.current.down = dy > max * 0.55;
   };
-
-  const resetSlidePad = () => {
+  const resetStick = () => {
     inputRef.current.left = false;
     inputRef.current.right = false;
     inputRef.current.up = false;
     inputRef.current.down = false;
-    wasUpRef.current = false;
-    setPadDir('none');
+    setKnob({ x: 0, y: 0 });
   };
 
   const inputRef = useRef<MapleInputState>({
@@ -116,6 +120,22 @@ export const GameTab: React.FC<GameTabProps> = ({
     potHpPressed: false,
     potMpPressed: false,
   });
+
+  useEffect(() => {
+    inputRef.current.auto = auto;
+  }, [auto]);
+  useEffect(() => {
+    if (!auto) return;
+    const t = Date.now();
+    if (t - potAtRef.current < 1500) return;
+    if (state.hp / getMaxHp(state.level) < 0.35 && state.hpPotions > 0) {
+      potAtRef.current = t;
+      inputRef.current.potHpPressed = true;
+    } else if (state.mp / getMaxMp(state.level) < 0.2 && state.mpPotions > 0) {
+      potAtRef.current = t;
+      inputRef.current.potMpPressed = true;
+    }
+  }, [auto, state.hp, state.mp, state.level, state.hpPotions, state.mpPotions]);
 
   const activeQuest = dojo
     ? dojoQuest(dojo.floor)
@@ -179,6 +199,16 @@ export const GameTab: React.FC<GameTabProps> = ({
       } else if (e.code === 'KeyD') {
         e.preventDefault();
         if (!e.repeat) inputRef.current.skillDPressed = true;
+      } else if (e.code === 'KeyQ') {
+        e.preventDefault();
+        if (!e.repeat) setAutoRaw((v) => {
+          try {
+            localStorage.setItem('gom_auto', v ? '0' : '1');
+          } catch {
+            /* 무시 */
+          }
+          return !v;
+        });
       } else if (e.code === 'KeyX') {
         e.preventDefault();
         if (!e.repeat) inputRef.current.potHpPressed = true;
@@ -332,166 +362,121 @@ export const GameTab: React.FC<GameTabProps> = ({
           onPlayerDamaged={onPlayerDamaged}
         />
 
-        {/* On-Screen MapleStory Quickslot Bar (Potions + Skills + Cooldowns) */}
-        <div className="maple-quickslot-bar">
-          <div
-            className="quickslot-icon slot-pot-hp"
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              inputRef.current.potHpPressed = true;
-            }}
-            title="빨간 포션 (HP 회복)"
-          >
-            <span className="qs-key">X</span>
-            <span className="qs-emoji">🧪</span>
-            <span className="qs-name">{state.hpPotions}</span>
-          </div>
+      </div>
 
-          <div
-            className="quickslot-icon slot-pot-mp"
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              inputRef.current.potMpPressed = true;
-            }}
-            title="파란 포션 (MP 회복)"
-          >
-            <span className="qs-key">C</span>
-            <span className="qs-emoji">💧</span>
-            <span className="qs-name">{state.mpPotions}</span>
-          </div>
+      {/* 조작: 왼쪽 조이스틱 · 오른쪽 공격·점프·스킬·물약 · 자동 사냥 */}
+      <div className="pad">
+        <div
+          className="pad-stick"
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId);
+            haptic(6);
+            moveStick(e);
+          }}
+          onPointerMove={(e) => {
+            if (e.buttons > 0 || e.pointerType === 'touch') moveStick(e);
+          }}
+          onPointerUp={resetStick}
+          onPointerCancel={resetStick}
+        >
+          <div className="pad-knob" style={{ transform: `translate(${knob.x}px, ${knob.y}px)` }} />
+          <span className="pad-hint pad-hint-up">▲</span>
+          <span className="pad-hint pad-hint-down">▼</span>
+        </div>
 
-          <div
-            className="quickslot-icon slot-raging"
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              inputRef.current.attackPressed = true;
-            }}
-            title="곰발 연타 (기본공격)"
-          >
-            <span className="qs-key">A</span>
-            <span className="qs-emoji">🔥</span>
-            <span className="qs-name">곰발</span>
+        <div className="pad-right">
+          <div className="pad-skills">
+            {(
+              [
+                ['w', '✖️', '할퀴기', cdW],
+                ['e', '🌋', '불곰혼', cdE],
+                ['s', '⚔️', '내려찍기', cdS],
+                ['d', '💥', '포효', cdD],
+              ] as const
+            ).map(([k, ic, nm, cd]) => (
+              <button
+                key={k}
+                className={`pad-skill ${cd > 0 ? 'cd' : ''}`}
+                onPointerDown={(e) => {
+                  e.preventDefault();
+                  haptic(12);
+                  if (k === 'w') inputRef.current.skillWPressed = true;
+                  if (k === 'e') inputRef.current.skillEPressed = true;
+                  if (k === 's') inputRef.current.skillSPressed = true;
+                  if (k === 'd') inputRef.current.skillDPressed = true;
+                }}
+              >
+                <span>{ic}</span>
+                <small>{cd > 0 ? `${cd}s` : nm}</small>
+              </button>
+            ))}
           </div>
-
-          <div
-            className={`quickslot-icon slot-incising ${cdW > 0 ? 'on-cd' : ''}`}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              inputRef.current.skillWPressed = true;
-            }}
-            title="할퀴기 (MP 18)"
-          >
-            <span className="qs-key">W</span>
-            <span className="qs-emoji">✖️</span>
-            <span className="qs-name">할퀴기</span>
-            {cdW > 0 && <div className="qs-cd-overlay">{cdW}s</div>}
-          </div>
-
-          <div
-            className={`quickslot-icon slot-deathfault ${cdS > 0 ? 'on-cd' : ''}`}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              inputRef.current.skillSPressed = true;
-            }}
-            title="콤보 내려찍기 (MP 35)"
-          >
-            <span className="qs-key">S</span>
-            <span className="qs-emoji">⚔️</span>
-            <span className="qs-name">내려찍기</span>
-            {cdS > 0 && <div className="qs-cd-overlay">{cdS}s</div>}
-          </div>
-
-          <div
-            className={`quickslot-icon slot-burning ${cdE > 0 ? 'on-cd' : ''}`}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              inputRef.current.skillEPressed = true;
-            }}
-            title="불곰혼 (MP 25)"
-          >
-            <span className="qs-key">E</span>
-            <span className="qs-emoji">🌋</span>
-            <span className="qs-name">불곰혼</span>
-            {cdE > 0 && <div className="qs-cd-overlay">{cdE}s</div>}
-          </div>
-
-          <div
-            className={`quickslot-icon slot-shout ${cdD > 0 ? 'on-cd' : ''}`}
-            onPointerDown={(e) => {
-              e.stopPropagation();
-              inputRef.current.skillDPressed = true;
-            }}
-            title="포효 (MP 15)"
-          >
-            <span className="qs-key">D</span>
-            <span className="qs-emoji">💥</span>
-            <span className="qs-name">포효</span>
-            {cdD > 0 && <div className="qs-cd-overlay">{cdD}s</div>}
+          <div className="pad-main">
+            <button
+              className="pad-jump"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                haptic(8);
+                inputRef.current.jumpPressed = true;
+              }}
+            >
+              점프
+            </button>
+            <button
+              className="pad-attack"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                e.currentTarget.setPointerCapture(e.pointerId);
+                haptic(10);
+                inputRef.current.attackPressed = true;
+                inputRef.current.attackHeld = true;
+              }}
+              onPointerUp={() => {
+                inputRef.current.attackHeld = false;
+              }}
+              onPointerCancel={() => {
+                inputRef.current.attackHeld = false;
+              }}
+            >
+              🐾
+              <small>공격</small>
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile + PC Action Pad (Slide D-Pad + Haptic Action Buttons) */}
-      <div className="maple-controls-bar">
-        <div
-          className={`slide-dpad dir-${padDir}`}
-          onPointerDown={(e) => {
-            e.currentTarget.setPointerCapture(e.pointerId);
-            haptic(8);
-            handleSlidePad(e);
+      <div className="pad-bar">
+        <button
+          className={`pad-auto ${auto ? 'on' : ''}`}
+          onClick={() => {
+            sfx.click();
+            setAuto(!auto);
           }}
-          onPointerMove={(e) => {
-            if (e.buttons > 0 || e.pressure > 0) handleSlidePad(e);
-          }}
-          onPointerUp={resetSlidePad}
-          onPointerCancel={resetSlidePad}
         >
-          <span className="sd-up">▲</span>
-          <span className="sd-left">◀</span>
-          <span className="sd-center">●</span>
-          <span className="sd-right">▶</span>
-          <span className="sd-down">▼</span>
-        </div>
-
-        <div className="action-btn-group">
-          <button
-            className="pixel-btn pixel-btn-gold action-pad-btn"
-            onPointerDown={() => {
-              haptic(12);
-              inputRef.current.attackPressed = true;
-            }}
-          >
-            🔥 곰발(A)
-          </button>
-          <button
-            className={`pixel-btn ${
-              cdW > 0 ? 'pixel-btn-disabled' : 'pixel-btn-purple'
-            } action-pad-btn`}
-            disabled={cdW > 0}
-            onPointerDown={() => {
-              haptic(14);
-              inputRef.current.skillWPressed = true;
-            }}
-          >
-            {cdW > 0 ? `${cdW}s` : '✖️ 할퀴기(W)'}
-          </button>
-          <button
-            className={`pixel-btn ${
-              cdS > 0 ? 'pixel-btn-disabled' : 'pixel-btn-red'
-            } action-pad-btn`}
-            disabled={cdS > 0}
-            onPointerDown={() => {
-              haptic(20);
-              inputRef.current.skillSPressed = true;
-            }}
-          >
-            {cdS > 0 ? `${cdS}s` : '⚔️ 내려찍기(S)'}
-          </button>
-        </div>
+          {auto ? '⏸ 자동 사냥 끄기' : '▶ 자동 사냥'}
+        </button>
+        <button
+          className="pad-pot hp"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            inputRef.current.potHpPressed = true;
+          }}
+        >
+          🧪 {state.hpPotions}
+        </button>
+        <button
+          className="pad-pot mp"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            inputRef.current.potMpPressed = true;
+          }}
+        >
+          💧 {state.mpPotions}
+        </button>
       </div>
 
       <div className="controls-hint">
-        ⌨️ 이동: ←→ · 점프: Space · 기본: A · 스킬: W/S/E/D · 물약: X(HP)/C(MP)
+        ⌨️ PC: ←→ 이동 · ↑↓ 사다리 · Space 점프 · A 공격 · W/S/E/D 스킬 · X/C 물약 · Q 자동
       </div>
 
       {/* Daily Quests Section */}

@@ -2010,3 +2010,38 @@ html, body, #root { background: #fff !important; color: var(--ink) !important; -
 .duel-arena.win { background: var(--gold-bg) !important; } .duel-arena.lose { background: #e9f0fd !important; }
 .duel-mid, .duel-reward { color: #d97706 !important; font-weight: 900; }
 .duel-side small { color: var(--dim) !important; }
+
+/* ═════════ 조작부 (폰: 조이스틱 + 큰 버튼, PC: 키보드) ═════════ */
+.pad { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 4px 0; user-select: none; -webkit-user-select: none; touch-action: none; }
+.pad-stick { position: relative; flex: none; width: 128px; height: 128px; border-radius: 50%; background: var(--paper); box-shadow: inset 0 0 0 1.5px var(--border-dark); touch-action: none; }
+.pad-knob { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%;
+  background: linear-gradient(160deg, #ffffff, #e9e9f1); box-shadow: 0 4px 12px rgba(23,22,31,.18); transition: transform .06s linear; pointer-events: none; }
+.pad-hint { position: absolute; left: 50%; transform: translateX(-50%); font-size: 10px; color: var(--faint); pointer-events: none; }
+.pad-hint-up { top: 8px; } .pad-hint-down { bottom: 8px; }
+.pad-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.pad-skills { display: grid; grid-template-columns: repeat(4, 52px); gap: 6px; }
+.pad-skill { position: relative; width: 52px; height: 52px; border-radius: 16px; background: var(--paper); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; touch-action: none; }
+.pad-skill span { font-size: 20px; line-height: 1; }
+.pad-skill small { font-size: 10px; font-weight: 800; color: var(--dim); }
+.pad-skill.cd { opacity: .45; }
+.pad-skill:active, .pad-jump:active, .pad-attack:active { transform: scale(.94); }
+.pad-main { display: flex; align-items: flex-end; gap: 10px; }
+.pad-jump { width: 64px; height: 64px; border-radius: 50%; background: var(--paper2); color: var(--ink); font-size: 14px; font-weight: 800; touch-action: none; }
+.pad-attack { width: 88px; height: 88px; border-radius: 50%; background: linear-gradient(150deg, #ffcf4a, #e39a00); color: #3a2400; font-size: 30px; line-height: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; box-shadow: 0 8px 20px rgba(227,154,0,.35); touch-action: none; }
+.pad-attack small { font-size: 12px; font-weight: 900; }
+.pad-bar { display: flex; gap: 8px; margin-top: 10px; }
+.pad-auto { flex: 1; padding: 12px; border-radius: 14px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 800; }
+.pad-auto.on { background: var(--gold-bg); color: #8a5a00; box-shadow: inset 0 0 0 2px var(--gold); }
+.pad-pot { padding: 12px 14px; border-radius: 14px; background: var(--paper); font-size: 14px; font-weight: 800; touch-action: none; }
+.pad-pot.hp { color: #c81e3a; } .pad-pot.mp { color: var(--blue); }
+@media (max-width: 380px) {
+  .pad-stick { width: 112px; height: 112px; }
+  .pad-skills { grid-template-columns: repeat(4, 46px); }
+  .pad-skill { width: 46px; height: 46px; }
+  .pad-attack { width: 78px; height: 78px; }
+}
+/* PC에선 조작부가 덜 중요하니 작게 */
+@media (hover: hover) and (pointer: fine) {
+  .pad { opacity: .9; }
+}

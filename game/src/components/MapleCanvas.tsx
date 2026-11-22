@@ -16,6 +16,8 @@ export interface MapleInputState {
   skillDPressed: boolean;
   potHpPressed: boolean;
   potMpPressed: boolean;
+  attackHeld?: boolean; // 공격 버튼을 누르고 있는 동안 계속 공격
+  auto?: boolean; // 자동 사냥: 가까운 몬스터에게 가서 때리고 스킬도 써요
 }
 
 interface MapleCanvasProps {
@@ -170,6 +172,9 @@ const DOJO_THEME: RegionTheme = {
 
 /* ═════════ 그림 (썬빗 스타일: 도트 대신 둥근 벡터 그림) ═════════ */
 const RES = 2; // 캔버스를 2배로 그려서 폰·레티나에서도 또렷하게
+const ZOOM = 1.5; // 세계를 1.5배 확대해서 보여줘요 (폰에서 캐릭터가 너무 작지 않게)
+const VW = VIEW_W / ZOOM;
+const VH = H / ZOOM;
 
 function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
   const k = Math.max(0, Math.min(r, w / 2, h / 2));
@@ -270,8 +275,8 @@ function drawMob(
 }
 
 /**
- * 곰 모자를 쓴 사냥꾼 (둥근 벡터 그림). 발 아래 가운데(cx, by)가 기준점.
- * hatColor = 곰 모자 색, armorColor = 옷 색
+ * 말레이곰 새끼 사냥꾼 (둥근 벡터 그림). 발 아래 가운데(cx, by)가 기준점.
+ * 짙은 갈색 털 · 연한 주둥이 · 가슴의 금색 초승달 무늬. hatColor = 머리띠, armorColor = 조끼, hairColor = 정수리 털
  */
 function drawCuteMapleHero(
   ctx: CanvasRenderingContext2D,
@@ -287,119 +292,161 @@ function drawCuteMapleHero(
 ) {
   ctx.save();
   ctx.translate(cx, by);
+  ctx.scale(1.12, 1.12);
   if (dir === -1) ctx.scale(-1, 1);
-  const bob = isMoving ? Math.abs(Math.sin(walkPhase)) * 2 : 0;
-  const leg = isMoving ? Math.sin(walkPhase) * 2.5 : 0;
-  const ink = '#2b211c';
+  const bob = isMoving ? Math.abs(Math.sin(walkPhase)) * 1.6 : Math.sin(Date.now() / 420) * 0.5;
+  const step = isMoving ? Math.sin(walkPhase) * 3 : 0;
+  const fur = '#3a2a22';
+  const furHi = '#54402f';
+  const muzzle = '#e9c39a';
+  const ink = '#17110c';
 
+  // 그림자
   ctx.fillStyle = 'rgba(23,22,31,0.18)';
   ctx.beginPath();
-  ctx.ellipse(0, -0.5, 10, 2.6, 0, 0, Math.PI * 2);
+  ctx.ellipse(0, -0.5, 12, 3, 0, 0, Math.PI * 2);
   ctx.fill();
 
-  ctx.fillStyle = ink;
-  rr(ctx, -6 + leg, -7, 5, 7, 2.5);
-  ctx.fill();
-  rr(ctx, 1 - leg, -7, 5, 7, 2.5);
+  // 뒷발 · 앞발 (걸을 때 번갈아)
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(-5 + step, -3, 4.6, 3.4, 0, 0, Math.PI * 2);
+  ctx.ellipse(5 - step, -3, 4.6, 3.4, 0, 0, Math.PI * 2);
   ctx.fill();
 
+  // 몸통 (동글동글)
+  const bodyY = -14 - bob;
+  ctx.fillStyle = fur;
+  ctx.beginPath();
+  ctx.ellipse(0, bodyY, 11, 11, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // 조끼
   ctx.fillStyle = armorColor;
-  rr(ctx, -8, -17 - bob, 16, 12, 5);
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  rr(ctx, -6, -16 - bob, 6, 4, 2);
-  ctx.fill();
-  ctx.fillStyle = '#f2b300';
-  rr(ctx, -8, -9 - bob, 16, 2.4, 1.2);
-  ctx.fill();
-
-  ctx.fillStyle = '#ffe3c4';
   ctx.beginPath();
-  ctx.arc(isAttacking ? 10 : 7, -11 - bob, 2.6, 0, Math.PI * 2);
+  ctx.ellipse(0, bodyY + 1, 11, 9.5, 0, 0.15 * Math.PI, 0.85 * Math.PI, true);
+  ctx.closePath();
   ctx.fill();
-
-  const hy = -27 - bob;
-  ctx.fillStyle = '#ffe3c4';
+  ctx.save();
   ctx.beginPath();
-  ctx.arc(0, hy, 10.5, 0, Math.PI * 2);
+  ctx.ellipse(0, bodyY, 11, 11, 0, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.fillStyle = armorColor;
+  rr(ctx, -12, bodyY - 4, 7, 16, 3);
+  ctx.fill();
+  rr(ctx, 5, bodyY - 4, 7, 16, 3);
+  ctx.fill();
+  ctx.restore();
+  // 가슴의 금색 초승달 (말레이곰 표식)
+  ctx.fillStyle = '#f2c14e';
+  ctx.beginPath();
+  ctx.ellipse(0, bodyY - 3, 6.5, 4, 0, 0, Math.PI);
+  ctx.ellipse(0, bodyY - 4.6, 5, 2.6, 0, Math.PI, 0, true);
   ctx.fill();
 
+  // 팔 (공격하면 앞으로 쭉)
+  ctx.fillStyle = furHi;
+  ctx.save();
+  ctx.translate(8, bodyY - 1);
+  ctx.rotate(isAttacking ? -0.9 : 0.35);
+  rr(ctx, -2.5, -2, 5, isAttacking ? 12 : 9, 2.5);
+  ctx.fill();
+  ctx.fillStyle = muzzle;
+  ctx.beginPath();
+  ctx.arc(0, isAttacking ? 10.5 : 7.5, 2.4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // 머리
+  const hy = bodyY - 15;
+  ctx.fillStyle = fur;
+  // 귀
+  ctx.beginPath();
+  ctx.arc(-8, hy - 7, 3.8, 0, Math.PI * 2);
+  ctx.arc(8, hy - 7, 3.8, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = muzzle;
+  ctx.beginPath();
+  ctx.arc(-8, hy - 7, 1.7, 0, Math.PI * 2);
+  ctx.arc(8, hy - 7, 1.7, 0, Math.PI * 2);
+  ctx.fill();
+  // 얼굴
+  const fg = ctx.createRadialGradient(-3, hy - 4, 2, 0, hy, 13);
+  fg.addColorStop(0, furHi);
+  fg.addColorStop(1, fur);
+  ctx.fillStyle = fg;
+  ctx.beginPath();
+  ctx.ellipse(0, hy, 12, 11, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // 정수리 털 (머리 모양 색)
   ctx.fillStyle = cosmetic.hairColor;
   ctx.beginPath();
-  ctx.ellipse(-1, hy - 6, 9.5, 4.5, -0.1, Math.PI, 0);
+  ctx.ellipse(-1, hy - 10, 4.5, 2.6, -0.2, 0, Math.PI * 2);
   ctx.fill();
-  if (cosmetic.hairStyle === 'twintail') {
-    ctx.beginPath();
-    ctx.ellipse(-11, hy + 3, 3, 7, 0.3, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (cosmetic.hairStyle === 'bob') {
-    ctx.beginPath();
-    ctx.ellipse(-8.5, hy + 2, 3.2, 7, 0.1, 0, Math.PI * 2);
-    ctx.fill();
-  } else if (cosmetic.hairStyle === 'spiky') {
-    ctx.beginPath();
-    ctx.moveTo(-5, hy - 9);
-    ctx.lineTo(-2, hy - 14);
-    ctx.lineTo(1, hy - 9);
-    ctx.lineTo(4, hy - 13);
-    ctx.lineTo(6, hy - 8);
-    ctx.fill();
-  }
-
-  // 곰 모자 (귀 두 개)
+  // 머리띠
   ctx.fillStyle = hatColor;
-  ctx.beginPath();
-  ctx.arc(-7, hy - 9, 3.8, 0, Math.PI * 2);
-  ctx.arc(7, hy - 9, 3.8, 0, Math.PI * 2);
+  rr(ctx, -11, hy - 7.5, 22, 3.4, 1.7);
   ctx.fill();
   ctx.beginPath();
-  ctx.ellipse(0, hy - 6.5, 10.8, 5.6, 0, Math.PI, 0);
+  ctx.moveTo(-10, hy - 6);
+  ctx.lineTo(-16, hy - 9);
+  ctx.lineTo(-15, hy - 3);
+  ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  // 주둥이
+  ctx.fillStyle = muzzle;
   ctx.beginPath();
-  ctx.arc(-7, hy - 9, 1.6, 0, Math.PI * 2);
-  ctx.arc(7, hy - 9, 1.6, 0, Math.PI * 2);
+  ctx.ellipse(1.5, hy + 4, 6.2, 4.6, 0, 0, Math.PI * 2);
   ctx.fill();
-
   ctx.fillStyle = ink;
-  if (cosmetic.eyeStyle === 'wink') {
-    ctx.beginPath();
-    ctx.ellipse(-3.5, hy + 1, 1.6, 2.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.lineWidth = 1.4;
-    ctx.strokeStyle = ink;
-    ctx.beginPath();
-    ctx.moveTo(2.2, hy + 1.2);
-    ctx.quadraticCurveTo(4, hy - 0.4, 5.8, hy + 1.2);
-    ctx.stroke();
-  } else if (cosmetic.eyeStyle === 'cool') {
-    rr(ctx, -5.5, hy, 4, 2, 1);
-    ctx.fill();
-    rr(ctx, 2, hy, 4, 2, 1);
-    ctx.fill();
-  } else {
-    ctx.beginPath();
-    ctx.ellipse(-3.5, hy + 1, 1.6, 2.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(4, hy + 1, 1.6, 2.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(-3, hy + 0.2, 0.6, 0, Math.PI * 2);
-    ctx.arc(4.5, hy + 0.2, 0.6, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  ctx.fillStyle = 'rgba(255,120,120,0.45)';
   ctx.beginPath();
-  ctx.arc(-6.5, hy + 4.5, 1.9, 0, Math.PI * 2);
-  ctx.arc(7, hy + 4.5, 1.9, 0, Math.PI * 2);
+  ctx.ellipse(2.2, hy + 2.2, 2.2, 1.5, 0, 0, Math.PI * 2);
   ctx.fill();
   ctx.strokeStyle = ink;
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 0.9;
+  ctx.lineCap = 'round';
   ctx.beginPath();
-  ctx.arc(0.5, hy + 4.5, 1.6, 0.15 * Math.PI, 0.85 * Math.PI);
+  ctx.moveTo(2.2, hy + 3.6);
+  ctx.lineTo(2.2, hy + 5);
+  ctx.moveTo(0, hy + 5.6);
+  ctx.quadraticCurveTo(2.2, hy + 7, 4.4, hy + 5.6);
   ctx.stroke();
+  // 눈
+  ctx.fillStyle = '#ffffff';
+  if (cosmetic.eyeStyle === 'cool') {
+    ctx.fillStyle = ink;
+    rr(ctx, -6.5, hy - 2.5, 5, 2.2, 1.1);
+    ctx.fill();
+    rr(ctx, 4, hy - 2.5, 5, 2.2, 1.1);
+    ctx.fill();
+  } else {
+    ctx.fillStyle = ink;
+    ctx.beginPath();
+    ctx.arc(-4, hy - 1.5, 2.1, 0, Math.PI * 2);
+    ctx.fill();
+    if (cosmetic.eyeStyle === 'wink') {
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(4.5, hy - 1.2);
+      ctx.quadraticCurveTo(6.5, hy - 3.2, 8.5, hy - 1.2);
+      ctx.stroke();
+    } else {
+      ctx.beginPath();
+      ctx.arc(6.5, hy - 1.5, 2.1, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(-3.3, hy - 2.3, 0.75, 0, Math.PI * 2);
+    if (cosmetic.eyeStyle !== 'wink') ctx.arc(7.2, hy - 2.3, 0.75, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  // 볼
+  ctx.fillStyle = 'rgba(255,140,140,0.45)';
+  ctx.beginPath();
+  ctx.ellipse(-7.5, hy + 3.5, 2.2, 1.5, 0, 0, Math.PI * 2);
+  ctx.ellipse(9.5, hy + 3.5, 2.2, 1.5, 0, 0, Math.PI * 2);
+  ctx.fill();
 
   ctx.restore();
 }
@@ -562,7 +609,8 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
       invulnTimer: 0,
     };
 
-    let camX = Math.max(0, Math.min(WORLD_W - VIEW_W, player.x - VIEW_W / 2));
+    let camX = Math.max(0, Math.min(WORLD_W - VW, player.x - VW / 2));
+    let camY = Math.max(0, Math.min(H - VH, player.y - VH * 0.68));
 
     const coins: CoinDrop[] = [];
     const loots: LootDrop[] = [];
@@ -701,6 +749,44 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
       const pState = propsRef.current;
       const input = inputRef.current;
 
+      // ── 누르고 있기 · 자동 사냥 ──
+      if (input.attackHeld) input.attackPressed = true;
+      const userMove = input.left || input.right || input.up || input.down;
+      let autoMoved = false;
+      if (input.auto && !userMove && !player.onRope) {
+        let target: Mob | null = null;
+        let bd = Infinity;
+        for (const m of mobsRef.current) {
+          if (m.hp <= 0) continue;
+          const d = Math.abs(m.x - player.x) + Math.abs(m.y - player.y) * 1.6;
+          if (d < bd) {
+            bd = d;
+            target = m;
+          }
+        }
+        if (target) {
+          const dx = target.x - player.x;
+          const dy = target.y - player.y;
+          if (Math.abs(dy) <= 40 && Math.abs(dx) < 62) {
+            player.dir = dx >= 0 ? 1 : -1;
+            input.attackPressed = true;
+            // 스킬은 쿨타임·MP를 캔버스가 알아서 확인해요. 조금씩 번갈아 눌러 봐요
+            const k = Math.floor(tickCount / 20) % 8;
+            if (k === 1) input.skillWPressed = true;
+            else if (k === 3) input.skillEPressed = true;
+            else if (k === 5) input.skillSPressed = true;
+            else if (k === 7) input.skillDPressed = true;
+          } else {
+            if (Math.abs(dx) > 6) {
+              input.left = dx < 0;
+              input.right = dx > 0;
+              autoMoved = true;
+            }
+            if (dy < -40 && player.onGround && Math.abs(dx) < 110 && Math.floor(tickCount) % 30 === 0) input.jumpPressed = true;
+          }
+        }
+      }
+
       while (mobsRef.current.length < 10) {
         spawnMob();
       }
@@ -778,6 +864,11 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
             sfx.click();
           }
         }
+      }
+
+      if (autoMoved) {
+        input.left = false;
+        input.right = false;
       }
 
       // Attack (Hero's Raging Blow!)
@@ -937,8 +1028,10 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
       }
 
       // Smooth Camera Follow
-      const targetCamX = Math.max(0, Math.min(WORLD_W - VIEW_W, player.x - VIEW_W / 2));
+      const targetCamX = Math.max(0, Math.min(WORLD_W - VW, player.x - VW / 2));
       camX += (targetCamX - camX) * 0.14;
+      const targetCamY = Math.max(0, Math.min(H - VH, player.y - VH * 0.68));
+      camY += (targetCamY - camY) * 0.1;
 
       // Mobs
       const deadMobs = mobsRef.current.filter((m) => m.hp <= 0);
@@ -1172,7 +1265,8 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
       const shakeX = player.shakeTimer > 0 ? Math.round((Math.random() - 0.5) * 8) : 0;
       const shakeY = player.shakeTimer > 0 ? Math.round((Math.random() - 0.5) * 8) : 0;
       ctx.save();
-      ctx.translate(-Math.round(camX) + shakeX, shakeY);
+      ctx.scale(ZOOM, ZOOM);
+      ctx.translate(-camX + shakeX, -camY + shakeY);
 
       // 사다리
       ctx.strokeStyle = 'rgba(23,22,31,0.35)';
@@ -1460,7 +1554,7 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
         // 1. Dramatic dark void backdrop + subtle crimson vignette
         const darkAlpha = prog < 0.25 ? (prog / 0.25) * 0.78 : 0.78 * (1 - (prog - 0.25) / 0.75);
         ctx.fillStyle = `rgba(8, 2, 14, ${Math.max(0, darkAlpha)})`;
-        ctx.fillRect(camX, 0, VIEW_W, H);
+        ctx.fillRect(camX, camY, VW, VH);
 
         // 2. Hero Crimson Aura burst around player during windup
         if (prog < 0.45) {
@@ -1488,7 +1582,7 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
           const fade = 1 - slashProg * slashProg;
           const x1 = camX - 24;
           const y1 = H + 18;
-          const x2 = camX + VIEW_W + 24;
+          const x2 = camX + VW + 24;
           const y2 = -18;
           const mx = (x1 + x2) / 2;
           const my = (y1 + y2) / 2;
@@ -1561,13 +1655,13 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
         ctx.fillText(
           `LEVEL UP! Lv.${pState.level}`,
           Math.round(player.x) + 2,
-          Math.round(player.y - 42) + 2
+          Math.round(player.y - 64) + 2
         );
         ctx.fillStyle = '#ffd43b';
         ctx.fillText(
           `LEVEL UP! Lv.${pState.level}`,
           Math.round(player.x),
-          Math.round(player.y - 42)
+          Math.round(player.y - 64)
         );
         ctx.restore();
       }
