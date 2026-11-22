@@ -742,6 +742,7 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
       }
     };
 
+    let autoJumpAt = -999;
     const step = (now: number) => {
       const dt = Math.min(2, (now - lastTime) / 16.67);
       lastTime = now;
@@ -777,12 +778,27 @@ export const MapleCanvas: React.FC<MapleCanvasProps> = ({
             else if (k === 5) input.skillSPressed = true;
             else if (k === 7) input.skillDPressed = true;
           } else {
-            if (Math.abs(dx) > 6) {
-              input.left = dx < 0;
-              input.right = dx > 0;
+            let goLeft = dx < 0;
+            let move = Math.abs(dx) > 6;
+            if (dy > 40) {
+              // 몬스터가 아래에 있으면: 지금 서 있는 발판의 가까운 끝으로 걸어가서 떨어져요
+              const plat = PLATFORMS.find(
+                (pl) => player.x >= pl.x - 2 && player.x <= pl.x + pl.w + 2 && Math.abs(player.y - pl.y) < 6
+              );
+              if (plat) {
+                move = true;
+                if (Math.abs(dx) < 40) goLeft = player.x - plat.x < plat.x + plat.w - player.x;
+              }
+            }
+            if (move) {
+              input.left = goLeft;
+              input.right = !goLeft;
               autoMoved = true;
             }
-            if (dy < -40 && player.onGround && Math.abs(dx) < 110 && Math.floor(tickCount) % 30 === 0) input.jumpPressed = true;
+            if (dy < -40 && player.onGround && Math.abs(dx) < 70 && tickCount - autoJumpAt > 40) {
+              autoJumpAt = tickCount;
+              input.jumpPressed = true;
+            }
           }
         }
       }
