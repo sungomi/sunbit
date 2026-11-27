@@ -1118,7 +1118,7 @@ body.has-taxbar{padding-bottom:calc(210px + env(safe-area-inset-bottom,0px))}
 .krwwal.bn{background:linear-gradient(150deg,rgba(28,95,230,.5),rgba(11,47,122,.78)),var(--bn) center/cover no-repeat}
 .krwwal.bn b,.krwwal.bn .wl-s{text-shadow:0 1px 6px rgba(0,0,0,.35)}
 /* 🎰 도박장 게임 고르기 */
-.cgames{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.cgames{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .cgames button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 0 7px;border-radius:14px;background:var(--paper);color:var(--ink)}
 .cgames .cg-ic{font-size:22px;line-height:1.1}.cgames b{font-size:12px;font-weight:900}.cgames small{font-size:9.5px;font-weight:800;color:var(--dim)}
 .cgames button[aria-pressed="true"]{background:linear-gradient(150deg,#3b0764,#9d174d);color:#fff;box-shadow:0 4px 14px rgba(157,23,77,.35),inset 0 0 0 1.5px rgba(255,215,0,.6)}
@@ -1322,3 +1322,111 @@ body.bnbody{background-image:linear-gradient(rgba(255,255,255,.84),rgba(255,255,
 .rpg-gear{display:flex;flex-wrap:wrap;gap:5px}
 .rpg-g{font-size:11.5px;padding:3px 8px;border-radius:99px;background:#32294d}
 .rpg-g b{color:#ffd43b}
+
+/* ═════════ 토스증권 스타일 주식 구매·판매 시트 ═════════ */
+.toss-wrap{display:flex;flex-direction:column;gap:14px}
+.toss-head{display:flex;align-items:center;gap:11px;padding-right:34px}
+.toss-title{display:flex;flex-direction:column;gap:2px;min-width:0}
+.toss-title h3{margin:0;font-size:19px;font-weight:800;letter-spacing:-.02em;color:#191f28}
+.toss-title small{font-size:12.5px;font-weight:600;color:#6b7684;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.toss-st{padding:2px 7px;border-radius:99px;font-size:11px;font-weight:700;background:#f2f4f6;color:#4e5968}
+.toss-st.live{background:#e8f3ff;color:#3182f6}
+.toss-price{display:flex;flex-direction:column;gap:3px}
+.tp-main{font-size:30px;font-weight:900;letter-spacing:-.03em;color:#191f28;line-height:1.15}
+.tp-sub{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:700}
+.tp-sub .up{color:#f04452}.tp-sub .down{color:#3182f6}
+.tp-won{color:#8b95a1;font-weight:600}
+.tp-cap{font-size:11.5px;color:#8b95a1;margin-top:2px}
+.toss-chart{margin:0 -4px}
+.toss-hold{display:flex;justify-content:space-between;align-items:center;padding:13px 15px;border-radius:16px;background:#f2f4f6}
+.toss-hold>div{display:flex;flex-direction:column;gap:2px}
+.toss-hold>div.r{text-align:right;align-items:flex-end}
+.toss-hold small{font-size:11.5px;font-weight:700;color:#6b7684}
+.toss-hold b{font-size:16px;font-weight:800;color:#191f28}
+.toss-hold span{font-size:12px;font-weight:600;color:#6b7684}
+.toss-hold .up{color:#f04452}.toss-hold .down{color:#3182f6}
+.toss-tabs{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:4px;border-radius:14px;background:#f2f4f6}
+.toss-tabs button{padding:10px 0;border-radius:11px;font-size:14.5px;font-weight:800;color:#6b7684;background:transparent;transition:all .15s}
+.toss-tabs button.tt-buy[aria-selected="true"]{background:#fff;color:#f04452;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.toss-tabs button.tt-sell[aria-selected="true"]{background:#fff;color:#3182f6;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.toss-tabs button.tt-fut[aria-selected="true"]{background:#fff;color:#191f28;box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.toss-order{display:flex;flex-direction:column;gap:12px}
+.toss-row{display:flex;justify-content:space-between;align-items:center;padding:11px 14px;border-radius:14px;background:#f9fafb;font-size:13px;color:#6b7684;font-weight:700}
+.toss-row b{color:#191f28;font-weight:800}
+.toss-qtybox{display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 12px 12px;border-radius:16px;background:#f9fafb;border:1.5px solid #e5e8eb}
+.toss-qtybox.buy:focus-within{border-color:#f04452;background:#fff}
+.toss-qtybox.sell:focus-within{border-color:#3182f6;background:#fff}
+.toss-qline{display:flex;align-items:baseline;justify-content:center;gap:4px;width:100%}
+.toss-qin{width:100%;max-width:210px;border:0;background:transparent;text-align:center;font-size:32px;font-weight:900;color:#191f28;outline:none;padding:0;letter-spacing:-.02em}
+.toss-qin::placeholder{color:#d1d6db}
+.toss-qunit{font-size:18px;font-weight:800;color:#4e5968}
+.toss-qsub{font-size:13px;font-weight:600;color:#6b7684;text-align:center}
+.toss-qsub b{color:#191f28;font-weight:800}
+.toss-pcts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.toss-pcts button{padding:9px 0;border-radius:12px;background:#f2f4f6;color:#333d4b;font-size:13px;font-weight:800;transition:background .12s}
+.toss-pcts button:active{background:#e5e8eb;transform:scale(.97)}
+.toss-meta{display:flex;flex-direction:column;gap:6px;padding:11px 14px;border-radius:14px;background:#f9fafb;font-size:12.5px}
+.toss-meta>div{display:flex;justify-content:space-between;align-items:center}
+.toss-meta span{color:#6b7684;font-weight:600}
+.toss-meta b{color:#333d4b;font-weight:800}
+.toss-pad{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.toss-pad button{height:44px;border-radius:12px;background:#f9fafb;color:#191f28;font-size:18px;font-weight:800;transition:background .1s}
+.toss-pad button[data-tpad="C"]{font-size:13.5px;color:#6b7684}
+.toss-pad button:active{background:#e5e8eb;transform:scale(.96)}
+.toss-cta{width:100%;height:54px;border-radius:16px;font-size:16px;font-weight:800;color:#fff;letter-spacing:-.01em;transition:transform .1s,opacity .15s}
+.toss-cta.buy{background:#f04452;box-shadow:0 6px 16px rgba(240,68,82,.28)}
+.toss-cta.sell{background:#3182f6;box-shadow:0 6px 16px rgba(49,130,246,.28)}
+.toss-cta:disabled{opacity:.38;box-shadow:none;cursor:not-allowed}
+.toss-cta:not(:disabled):active{transform:scale(.98)}
+
+/* ═════════ 🎴 섯다 (Seotda) ═════════ */
+.seotda{display:flex;flex-direction:column;gap:12px}
+.sd-pot{padding:4px 10px;border-radius:99px;background:#fff3bf;color:#9c4221;font-size:12px;font-weight:900;white-space:nowrap}
+.sd-table{display:flex;flex-direction:column;gap:10px;padding:14px 12px;border-radius:18px;background:radial-gradient(circle at 50% 35%,#1b5e3c 0%,#0f3d26 70%,#0a291a 100%);box-shadow:inset 0 0 0 2px rgba(255,215,0,.25),0 6px 18px rgba(10,41,26,.25);color:#fff}
+.sd-side{display:flex;flex-direction:column;align-items:center;gap:8px}
+.sd-who{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:800;color:#e6f4ea}
+.sd-jokbo{padding:3px 9px;border-radius:99px;font-size:12px;font-weight:900;background:rgba(255,255,255,.15);color:#fff}
+.sd-jokbo.god{background:linear-gradient(135deg,#ffd43b,#ff6b6b);color:#1a0b00;box-shadow:0 0 12px rgba(255,212,59,.6)}
+.sd-jokbo.kwang{background:#ffd43b;color:#2b1800}
+.sd-jokbo.ddang{background:#ff8787;color:#3d0000}
+.sd-jokbo.jokbo{background:#74c0fc;color:#0b2545}
+.sd-jokbo.spec{background:#d0bfff;color:#2b1055}
+.sd-jokbo.hi{background:#8ce99a;color:#0b3d16}
+.sd-jokbo.dim{background:rgba(0,0,0,.35);color:#b2dfdb}
+.sd-cards{display:flex;justify-content:center;gap:12px}
+.sd-card{width:76px;height:112px;border-radius:10px;box-shadow:0 6px 14px rgba(0,0,0,.35);position:relative;overflow:hidden;user-select:none;transition:transform .2s}
+.sd-card.front{background:var(--sb,#fff);border:3px solid #c92a2a;display:flex;flex-direction:column;justify-content:space-between;padding:5px 6px;color:#191f28}
+.sd-top{display:flex;justify-content:space-between;align-items:center;line-height:1}
+.sd-top b{font-size:12px;font-weight:900;color:var(--sa,#c92a2a)}
+.sd-b{font-style:normal;font-size:10px;font-weight:900;padding:1px 4px;border-radius:4px;line-height:1.2}
+.sd-b.kwang{background:#ffd43b;color:#7a0000;box-shadow:inset 0 0 0 1px #c92a2a}
+.sd-b.yeol{background:#c92a2a;color:#fff}
+.sd-art{font-size:34px;text-align:center;line-height:1;filter:drop-shadow(0 2px 3px rgba(0,0,0,.15))}
+.sd-bot{font-size:10.5px;font-weight:800;text-align:center;color:#495057;letter-spacing:-.02em}
+.sd-card.back{background:linear-gradient(135deg,#b91c1c,#7f1d1d);border:3px solid #fca5a5;display:flex;align-items:center;justify-content:center;padding:6px}
+.sd-back-in{width:100%;height:100%;border-radius:6px;border:1.5px dashed rgba(255,215,0,.5);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.sd-back-in span{font-size:26px}
+.sd-back-in small{font-size:8.5px;font-weight:900;letter-spacing:.12em;color:#fde68a}
+.sd-mid{text-align:center;padding:7px 10px;border-radius:10px;background:rgba(0,0,0,.28);font-size:12.5px;font-weight:700;min-height:34px;display:flex;align-items:center;justify-content:center}
+.sd-taunt{color:#d3f9d8}
+.sd-res{color:#fff;line-height:1.45}
+.sd-res .up{color:#69db7c}.sd-res .down{color:#ff8787}
+.sd-acts{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.sd-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:10px 4px;border-radius:13px;color:#fff;font-weight:900;transition:transform .1s,opacity .15s}
+.sd-btn b{font-size:13.5px}.sd-btn small{font-size:10px;font-weight:700;opacity:.9}
+.sd-btn.die{background:#64748b}
+.sd-btn.call{background:#2563eb}
+.sd-btn.half{background:#ea580c}
+.sd-btn.dbl{background:linear-gradient(135deg,#dc2626,#991b1b);box-shadow:0 4px 12px rgba(220,38,38,.35)}
+.sd-btn:disabled{opacity:.35;cursor:not-allowed}
+.sd-btn:not(:disabled):active{transform:scale(.96)}
+.sd-deal{background:linear-gradient(135deg,#b91c1c,#7f1d1d)!important;color:#fff!important;box-shadow:0 6px 16px rgba(185,28,28,.3)}
+.sd-hist{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+.sd-hist i{font-style:normal;font-size:11px;font-weight:900;padding:3px 7px;border-radius:7px;background:#f1f3f5;color:#495057}
+.sd-hist i.W{background:#e6fcf5;color:#087f5b}
+.sd-hist i.L{background:#fff5f5;color:#c92a2a}
+.sd-hist i.T{background:#fff9db;color:#e67700}
+.sd-guide{font-size:12px;color:var(--dim);background:#f8f9fa;border-radius:12px;padding:9px 12px}
+.sd-guide summary{font-weight:800;cursor:pointer;color:var(--ink)}
+.sd-glist{display:flex;flex-direction:column;gap:4px;margin-top:8px;line-height:1.45}
+.sd-glist b{color:var(--ink);margin-right:4px}

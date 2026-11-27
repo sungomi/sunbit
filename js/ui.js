@@ -93,7 +93,7 @@ function renderCasino() {
     <p class="betnow">이번 판 <b class="num" id="betNow">${won(bet)}</b> · 최대 <b class="num" id="betCap">${cgCap(bet)}배</b>${bet >= BET_CAP ? ' <span class="dim">(한 판 최대)</span>' : bet >= S.me.cash && bet > 0 ? ' <span class="up">(현금 전부 올인!)</span>' : ''}</p></div>
     ${casinoPickerHTML()}
     ${casinoGameHTML()}
-    <p class="hint">게임 결과도 총자산에 그대로 반영돼요. 로켓·보물상자는 도중에 앱을 끄면 그 판은 잃어요.</p>`;
+    <p class="hint">게임 결과도 총자산에 그대로 반영돼요. 섯다·로켓·보물상자는 도중에 앱을 끄면 그 판은 잃어요.</p>`;
   if (mx < MINBET) h = `<div class="empty">현금이 부족해요. 지원금을 받거나 주식을 팔아보세요.</div>`;
   el.innerHTML = h;
 }
@@ -210,19 +210,13 @@ async function buyBannerTicket() {
 // 🛍️ 상점
 function renderShop() {
   const el = $('#tab-shop');
-  if (S.shopView === 'game' && CASINO_OFF) S.shopView = '';
-  if (S.shopView === 'game') {
-    if (!el.querySelector('#tab-casino')) el.innerHTML = `<button type="button" class="back-link" id="shopBack">← 상점으로</button><section class="sec" id="tab-casino" style="gap:18px"></section>`;
-    if (!C.busy && !C.live) renderCasino(); return;
-  }
   const lv = S.me ? lvOf(S.me) : 1, lc = lvCost(lv), spend = S.me ? lvSpendable(S.me) : 0;
   const plan = S.me ? lvMaxPlan(spend, lv) : { to: lv, spent: 0 }, armed = S.lvArm && Date.now() - S.lvArm < 4000;
   const resPct = Math.round(60 * Math.tanh((lv - 1) / 60));
   const holdWarn = S.me && S.me.cash >= lc && spend < lc;
   el.innerHTML = `<div class="card shopitem lvitem"><span class="si-ic">⚔️</span><span class="si-t"><b>전투력 레벨업 · LV.${lv}</b><small>약탈·사냥 공방 확률 최대 ±18%p · 파산 지원금 보너스 +${resPct}%</small>${holdWarn ? `<small class="down">비상금 5억원(실질자산 기준)은 남겨야 레벨업 가능해요</small>` : ''}</span><button type="button" id="lvUp" ${S.me && !S.readOnly && spend >= lc && !S.saving ? '' : 'disabled'}>${won(lc)}</button></div>
     ${plan.to > lv + 1 ? `<button type="button" class="cta ${armed ? 'buy' : 'soft'} lvmax" id="lvMax" ${S.saving || S.readOnly ? 'disabled' : ''}>${armed ? `한 번 더 누르면 LV.${plan.to}까지 · ${won(plan.spent)} 결제` : `⏫ 최대한 올리기 · LV.${plan.to}까지 ${won(plan.spent)}`}</button>` : ''}
-    <div class="card lv-desc"><div><b>⚔️ 전투력 효과</b><small>상대보다 레벨이 높으면 내 공격 성공률이 오르고, 상대가 나를 털 확률은 내려가요 (LV.1 vs LV.${lv} 기준 <b class="num">${lv > 1 ? '+' : ''}${(18 * Math.tanh((lv - 1) / 45)).toFixed(1)}%p</b>). 부자가 레벨을 안 올리면 동네북이 돼요!</small></div></div>
-<div class="sec"><div class="sec-h"><h2>게임</h2></div><button type="button" class="card shopitem${CASINO_OFF ? ' off' : ''}" id="shopGame"><span class="si-ic">${CASINO_OFF ? '🔒' : '🎰'}</span><span class="si-t"><b>도박장 · 게임 5개${CASINO_OFF ? ' (잠시 닫힘)' : ''}</b><small>${CASINO_OFF ? '지금은 들어갈 수 없어요' : '⚡업다운 🚀로켓 💣보물상자 🎰슬롯 🏇경마'}</small></span><span class="si-go">›</span></button></div>`;
+    <div class="card lv-desc"><div><b>⚔️ 전투력 효과</b><small>상대보다 레벨이 높으면 내 공격 성공률이 오르고, 상대가 나를 털 확률은 내려가요 (LV.1 vs LV.${lv} 기준 <b class="num">${lv > 1 ? '+' : ''}${(18 * Math.tanh((lv - 1) / 45)).toFixed(1)}%p</b>). 부자가 레벨을 안 올리면 동네북이 돼요!</small></div></div>`;
 }
 // 소식에는 놀릴 거리만 남겨요: 큰 청산·큰 수익·지분·현상수배·하극상/참수
 const brag = f => f && (f.kind === 'k_fliq' || f.kind === 'k_bond' || f.kind === 'k_bty_add' || f.kind === 'k_bty_claim' || f.kind === 'k_bty_def' || (f.kind === 'k_atk' && (f.exec || f.udog)) || (f.pnl || 0) >= 1e8 || (f.kind === 'casino' && f.amt >= 1e8));
@@ -239,9 +233,9 @@ function renderFeed() {
 // 카테고리 버튼 줄을 밀고 있는 동안(그리고 관성 스크롤 동안)은 1초 새로고침을 잠깐 멈춰요
 let chipsTouchAt = 0;
 function renderAll() {
-  // 1초마다 새로 그릴 땐 상점(입력칸 있음)은 건너뛰어요
-  const R = { home: renderHome, coin: renderCoins, assets: renderMe, shop: renderShop }[S.tab];
-  if (R && !(S.liveOnly && (S.tab === 'shop' || Date.now() - chipsTouchAt < 1500))) R();
+  // 1초마다 새로 그릴 땐 상점·도박장(애니메이션/베팅 진행 중)은 건너뛰어요
+  const R = { home: renderHome, coin: renderCoins, casino: renderCasino, assets: renderMe, shop: renderShop }[S.tab];
+  if (R && !(S.liveOnly && (S.tab === 'shop' || S.tab === 'casino' || Date.now() - chipsTouchAt < 1500))) R();
   const latest = S.feed.find(f => f.uid !== S.uid && brag(f));
   $('#feedDot').hidden = S.board === 'feed' || !latest || latest.ts <= S.feedSeen;
   if (S.board && S.board !== 'log' && !S.liveOnly) renderBoard();
@@ -251,7 +245,7 @@ function renderAll() {
 }
 function goTab(name) {
   S.tab = name; document.querySelectorAll('.nav [data-tab]').forEach(x => x.setAttribute('aria-selected', x.dataset.tab === name));
-  ['home', 'coin', 'shop', 'assets'].forEach(n => $('#tab-' + (n === 'assets' ? 'wallet' : n)).hidden = n !== name);
+  ['home', 'coin', 'casino', 'shop', 'assets'].forEach(n => $('#tab-' + (n === 'assets' ? 'wallet' : n)).hidden = n !== name);
   const bb = $('#boardBtn'); if (bb) bb.hidden = name !== 'home';
   const lb = $('#logBtn'); if (lb) lb.hidden = name !== 'home';
   const gb = $('#promoGo'); if (gb) gb.hidden = CASINO_OFF || name !== 'coin';
@@ -400,15 +394,15 @@ const HELP = {
     '맨 위에 총자산·수익률·현금과 자산 구성(현금·코인·선물·주식·채권·지분)이 보여요.',
     '<b>가진 것</b>: 내가 가진 걸 전부 평가금액 순으로 모았어요. 누르면 바로 거래창이 열려요.',
     '사진을 누르면 바꿀 수 있어요. 맨 아래에서 <b>순위 배경</b>(200만원)·<b>닉네임</b>(200만원)을 바로 바꿔요. 친구 프로필도 같은 모양이에요.']],
-  shop: ['상점', '전투력 레벨업 · 도박장', [
-    '<b>⚔️ 전투력 레벨업</b>: 현금으로 올려요(1.14배씩 상승, 실질자산 최소 5억원은 비상금으로 남겨야 해요). 레벨이 높을수록 PvP 공격·방어 확률이 유리해지고, 파산 시 지원금 보너스(최대 +60%, 24시간 1회)도 올라가요.',
-    
-    '<b>⚡ 1분 업다운</b>: 진짜 업비트 시세로 1분 뒤 오를지 내릴지 맞혀요. 맞히면 1.9배, 3연승째부터 2.0배, 5연승째부터 2.3배. 가격이 똑같으면 돌려받아요. 앱을 꺼도 1분 뒤 시세로 결과가 정해져요.',
-    '<b>🚀 로켓</b>: 배수가 1.00x부터 계속 올라가요. 터지기 전에 <b>STOP</b>을 누르면 그 배수만큼 받아요. 최대 50배. 3%는 출발하자마자 터져요.',
-    '<b>💣 보물상자</b>: 상자 9개 중 폭탄 2개. 💎를 열 때마다 1.25배 → 1.66배 → … 최대 35배까지 올라가요. 언제든 그만두고 받을 수 있고, 폭탄이면 다 잃어요.',
+  casino: ['도박장', '섯다 · 업다운 · 로켓 · 보물상자 · 슬롯 · 경마', [
+    '<b>🎴 섯다</b>: 화투 20장(1~10월 각 2장)으로 딜러 말레이곰과 2장 승부! 내 2장과 딜러 1장을 보고 <b>다이(포기) · 콜(×1) · 하프(×2) · 따당(×3)</b>을 고르세요. 38광땡·암행어사·땡잡이 역전승은 보너스 ×1.5!',
+    '<b>⚡ 1분 업다운</b>: 진짜 업비트 시세로 1분 뒤 오를지 내릴지 맞혀요. 맞히면 1.9배, 3연승째부터 2.0배, 5연승째부터 2.3배.',
+    '<b>🚀 로켓</b>: 배수가 1.00x부터 계속 올라가요. 터지기 전에 <b>STOP</b>을 누르면 그 배수만큼 받아요. 최대 50배.',
+    '<b>💣 보물상자</b>: 상자 9개 중 폭탄 2개. 💎를 열 때마다 배수가 올라가요(최대 35배).',
     '<b>🎰 슬롯</b>: 세 줄이 같으면 🍒3배 · 🍋8배 · 🔔35배 · 💎80배 · 7️⃣200배. 🍒가 딱 2개면 본전.',
-    '<b>🏇 경마</b>: 4마리 중 1등할 말을 고르면 3.8배.',
-    '모든 게임은 평균 94~97%를 돌려줘요. 오래 하면 조금씩 잃어요.']],
+    '<b>🏇 경마</b>: 4마리 중 1등할 말을 고르면 3.8배.']],
+  shop: ['상점', '전투력 레벨업', [
+    '<b>⚔️ 전투력 레벨업</b>: 현금으로 올려요(1.14배씩 상승, 실질자산 최소 5억원은 비상금으로 남겨야 해요). 레벨이 높을수록 PvP 공격·방어 확률이 유리해지고, 파산 시 지원금 보너스(최대 +60%, 24시간 1회)도 올라가요.']],
 };
 function renderHelp(b) {
   const [t, sub, items] = (S.profile ? HELP.atk : HELP[S.tab]) || HELP.home;

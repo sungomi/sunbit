@@ -6,10 +6,10 @@
 // 🔒 도박장 잠금 (2026-11-12): true면 들어갈 수 없어요. 다시 열려면 false로
 const CASINO_OFF = false;   // 2026-11-12 배수 줄여서 다시 열었어요
 const CG = [
-  ['ud', '⚡', '업다운', '2.3배'], ['rocket', '🚀', '로켓', '50배'], ['mine', '💣', '보물상자', '35배'],
-  ['slot', '🎰', '슬롯', '200배'], ['race', '🏇', '경마', '3.8배'],
+  ['seotda', '🎴', '섯다', '9배'], ['ud', '⚡', '업다운', '2.3배'], ['rocket', '🚀', '로켓', '50배'],
+  ['mine', '💣', '보물상자', '35배'], ['slot', '🎰', '슬롯', '200배'], ['race', '🏇', '경마', '3.8배'],
 ];
-const cgCur = () => (CG.some(([k]) => k === S.cg) ? S.cg : 'ud');
+const cgCur = () => (CG.some(([k]) => k === S.cg) ? S.cg : 'seotda');
 // 판돈이 클수록 최대 배수가 줄어요: 1억 이하 300배 → 10억 20배 (그 사이는 로그로 이어요)
 const cgCap = bet => (bet <= 1e8 ? 100 : bet >= 1e9 ? 10 : Math.round(100 * Math.pow(10 / 100, Math.log10(bet / 1e8))));   // 1억 이하 100배 → 10억 10배
 const fmtX = m => (m >= 10 ? m.toFixed(1) : m.toFixed(2)) + 'x';
@@ -31,6 +31,7 @@ function casinoPickerHTML() {
 }
 function casinoGameHTML() {
   const g = cgCur();
+  if (g === 'seotda') return seotdaHTML();
   if (g === 'ud') return udCardHTML();
   if (g === 'rocket') return rocketHTML();
   if (g === 'mine') return mineHTML();

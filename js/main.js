@@ -1,7 +1,7 @@
 'use strict';
 /* ═════════ 시작 · 클릭 연결 · 1초 타이머 ═════════ */
 async function boot() {
-  syncTime(); gmInit(); S.betPct = LS.get('betPct', '0.1'); if (S.betPct === 'custom') S.betPct = '0.1'; S.feedSeen = LS.get('feedSeen', 0); S.homePin = LS.get('homePin', false); S.udSym = LS.get('udSym', 'KRW-BTC'); S.cg = LS.get('cg', 'ud'); S.homeFlipAt = Date.now(); renderAll();
+  syncTime(); gmInit(); S.betPct = LS.get('betPct', '0.1'); if (S.betPct === 'custom') S.betPct = '0.1'; S.feedSeen = LS.get('feedSeen', 0); S.homePin = LS.get('homePin', false); S.udSym = LS.get('udSym', 'KRW-BTC'); S.cg = LS.get('cg', 'seotda'); S.homeFlipAt = Date.now(); renderAll();
   const cfg = window.FIREBASE_CONFIG;
   if (cfg && cfg.apiKey) { bootFirebase(cfg); return; }
   startDemo();
@@ -31,7 +31,7 @@ document.addEventListener('click', e => {
     case 'profBack': closeProfile(); break;
     case 'lvUp': levelUp(); break;
     case 'lvMax': levelMax(); break;
-    case 'shopGame': case 'gameBtn': case 'goGame': case 'promoGo': if (CASINO_OFF) { toast('🔒 도박장은 잠시 문을 닫았어요'); break; } S.shopView = 'game'; goTab('shop'); break;
+    case 'shopGame': case 'gameBtn': case 'goGame': case 'promoGo': if (CASINO_OFF) { toast('🔒 도박장은 잠시 문을 닫았어요'); break; } goTab('casino'); break;
     case 'shopBack': S.shopView = null; renderShop(); break;
     case 'photoBtn': case 'photoBtn2': pickPhoto('photo'); break;
     case 'photoDel': clearPhoto(); break;

@@ -40,7 +40,7 @@ function fPositions(p, field) {
 
 /* ───────── 청산: 실시간 시세 + 앱이 꺼져 있던 동안은 분봉 최저·최고가 ───────── */
 const FQ = { busy: false, scanned: {} };
-function fLiveCheck(sym) { if (!GM.ready && !GC[sym]) return; const o = S.me && (S.me[fField(sym)] || {})[sym]; if (o && !S.readOnly) { const p = fPx(sym); if (p && fDead(o, p)) fLiquidate(sym); } }
+function fLiveCheck(sym) { const o = S.me && (S.me[fField(sym)] || {})[sym]; if (o && !S.readOnly) { const p = fPx(sym); if (p && fDead(o, p)) fLiquidate(sym); } }
 async function fLiquidate(sym, trap) {
   const f = fField(sym); if (FQ.busy || S.saving || !S.me || !(S.me[f] || {})[sym]) return;
   FQ.busy = true;
@@ -55,37 +55,24 @@ async function fLiquidate(sym, trap) {
 // 총자산 1,000억까지는 털기 확률이 낮아요: 50억이면 약 0.24배 → 1,000억에서 원래대로
 const shockEase = () => .2 + .8 * Math.min(1, worth(S.me) / 1e11);
 const fShockRule = x => (x >= 100 ? { p: .2, mag: .25 } : x >= 50 ? { p: .15, mag: .25 } : x >= 25 ? { p: .067, mag: .15 } : x >= 10 ? { p: .025, mag: .05 } : null);
-function fTrap() {
-  if (!S.me || S.readOnly || S.saving || FQ.busy || !GM.ready) return;
-  for (const f of ['kFut', 'uFut']) for (const sym of Object.keys(S.me[f] || {})) fLiveCheck(sym);   // 충격으로 가격이 바뀌면 청산 확인
-  for (const f of ['kFut', 'uFut']) for (const [sym, o] of Object.entries(S.me[f] || {})) {
-    const R = fShockRule(o.x), p = fPx(sym); if (!R || !p || !o.m) continue;
-    // 미끼 방지: 증거금이 내 총자산의 15% 이상이거나 5억 이상인 포지션만 · 수익률 +25%부터
-    if (!(o.m >= .15 * worth(S.me) || o.m >= 5e8)) continue;
-    if ((fVal(o, p) - o.m) / o.m < .25 || Math.random() >= R.p * shockEase() || now() - lastShock(sym) < SHOCK.GAP) continue;
-    addFeed({ kind: 'k_shock', sym, d: -o.d, mag: R.mag, x: o.x });
-    toast(`💥 ${fAsset(sym).n} ${o.x}배 ${fSide(o)} 수익이 나자 가격이 ${o.d > 0 ? '-' : '+'}${Math.round(R.mag * 100)}% 꽂혔어요!`); buzz([80, 40, 80]);
-    renderAll(); return;   // 한 번에 하나씩
-  }
-}
+function fTrap() {}
 async function fScan() {
-  if (!S.me || S.readOnly || !GM.ready) return;
+  if (!S.me || S.readOnly) return;
   for (const f of ['kFut', 'uFut']) for (const [sym, o] of Object.entries(S.me[f] || {})) {
-    const key = sym + ':' + o.at; if (FQ.scanned[key]) continue;   // 포지션마다 앱을 켤 때 한 번만 (켜져 있는 동안은 실시간으로 확인해요) FQ.scanned[key] = Date.now();
+    const key = sym + ':' + o.at; if (FQ.scanned[key]) continue; FQ.scanned[key] = Date.now();
     try {
       const from = Math.floor(o.at / 6e4) * 6e4 + 6e4;   // 들어간 다음 분부터
       let lo = Infinity, hi = 0;
       if (f === 'kFut') {
         let oldest = Infinity;
         (await (await upFetch(`${UPBIT}/candles/minutes/1?market=${sym}&count=200`)).json()).forEach(c => {
-          const ts = Date.parse(c.candle_date_time_utc + 'Z'); oldest = Math.min(oldest, ts); if (ts >= from) { const [a] = gmRange(sym, ts, 6e4, c.low_price), [, b] = gmRange(sym, ts, 6e4, c.high_price); lo = Math.min(lo, a); hi = Math.max(hi, b); } });
+          const ts = Date.parse(c.candle_date_time_utc + 'Z'); oldest = Math.min(oldest, ts); if (ts >= from) { lo = Math.min(lo, c.low_price); hi = Math.max(hi, c.high_price); } });
         if (from < oldest) (await (await upFetch(`${UPBIT}/candles/minutes/60?market=${sym}&count=200`)).json()).forEach(c => {
-          const ts = Date.parse(c.candle_date_time_utc + 'Z'); if (ts >= Math.ceil(o.at / H) * H && ts < oldest) { const [a] = gmRange(sym, ts, H, c.low_price), [, b] = gmRange(sym, ts, H, c.high_price); lo = Math.min(lo, a); hi = Math.max(hi, b); } });
+          const ts = Date.parse(c.candle_date_time_utc + 'Z'); if (ts >= Math.ceil(o.at / H) * H && ts < oldest) { lo = Math.min(lo, c.low_price); hi = Math.max(hi, c.high_price); } });
       } else {
         if (!FX.p) continue;
         const bars = ((((await (await fetch('https://ts-api.cnbc.com/harmony/app/charts/1D.json?symbol=' + encodeURIComponent(UC[sym].s))).json()) || {}).barData || {}).priceBars) || [];
-        const ub = (UP[sym] || {}).base;
-        bars.forEach(b => { if (b.tradeTimeinMills >= from) { const lw = numOf(b.low), hg = numOf(b.high), [a] = gmRange(sym, b.tradeTimeinMills, 6e4, lw, ub ? lw / ub - 1 : 0), [, c2] = gmRange(sym, b.tradeTimeinMills, 6e4, hg, ub ? hg / ub - 1 : 0); lo = Math.min(lo, a * FX.p); hi = Math.max(hi, c2 * FX.p); } });
+        bars.forEach(b => { if (b.tradeTimeinMills >= from) { const lw = numOf(b.low), hg = numOf(b.high); if (lw) lo = Math.min(lo, lw * FX.p); if (hg) hi = Math.max(hi, hg * FX.p); } });
       }
       const cur = (S.me[f] || {})[sym];
       if (cur && cur.at === o.at && (cur.d > 0 ? lo <= fLiqP(cur) : hi >= fLiqP(cur))) await fLiquidate(sym);

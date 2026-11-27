@@ -3,11 +3,11 @@
 const K_RESCUE = 2_000_000_000, K_RESCUE_AT = 200_000_000, K_RESCUE_CD = 3600e3; // 실질 총자산 2억 밑이면 파산 지원금 20억 (1시간에 1번)
 const KFEE = 0.0005, K_MIN = 5000;        // 업비트 수수료 0.05%, 최소 주문 5,000원
 const KCOINS = [
-  ['BTC', '비트꼬인', 'major'], ['ETH', '이더리음', 'major'], ['XRP', '리뿔', 'major'], ['SOL', '쏠라나', 'major'], ['TRX', '트롱', 'major'],
-  ['ADA', '에이따', 'major'], ['BCH', '비트꼬인캐쉬', 'major'], ['ETC', '이더리음클래식', 'major'], ['LINK', '체인링꾸', 'major'], ['XLM', '스텔라루맨', 'major'], ['HBAR', '헤대라', 'major'],
-  ['AVAX', '아발랑쉬', 'l1'], ['DOT', '폴카땃', 'l1'], ['SUI', '쑤이', 'l1'], ['APT', '앱토쓰', 'l1'], ['NEAR', '니어리', 'l1'], ['SEI', '쎄이', 'l1'], ['ICP', '인터넷컴퓨타', 'l1'],
-  ['UNI', '유니스웝', 'defi'], ['AAVE', '에이부', 'defi'], ['ARB', '아비트롬', 'defi'], ['OP', '옵티미증', 'defi'], ['POL', '폴리공', 'defi'], ['ENA', '에테냐', 'defi'], ['ONDO', '온도파이낸쓰', 'defi'],
-  ['DOGE', '도지꼬인', 'meme'], ['SHIB', '시바견', 'meme'], ['PEPE', '뻬뻬', 'meme'], ['WIF', '도그위드햇', 'meme'], ['TRUMP', '오피셜트럼뿌', 'meme'], ['PENGU', '뚱지펭귄', 'meme'],
+  ['BTC', '비트코인', 'major'], ['ETH', '이더리움', 'major'], ['XRP', '리플', 'major'], ['SOL', '솔라나', 'major'], ['TRX', '트론', 'major'],
+  ['ADA', '에이다', 'major'], ['BCH', '비트코인캐시', 'major'], ['ETC', '이더리움클래식', 'major'], ['LINK', '체인링크', 'major'], ['XLM', '스텔라루멘', 'major'], ['HBAR', '헤데라', 'major'],
+  ['AVAX', '아발란체', 'l1'], ['DOT', '폴카닷', 'l1'], ['SUI', '수이', 'l1'], ['APT', '앱토스', 'l1'], ['NEAR', '니어', 'l1'], ['SEI', '세이', 'l1'], ['ICP', '인터넷컴퓨터', 'l1'],
+  ['UNI', '유니스왑', 'defi'], ['AAVE', '에이브', 'defi'], ['ARB', '아비트럼', 'defi'], ['OP', '옵티미즘', 'defi'], ['POL', '폴리곤', 'defi'], ['ENA', '에테나', 'defi'], ['ONDO', '온도파이낸스', 'defi'],
+  ['DOGE', '도지코인', 'meme'], ['SHIB', '시바이누', 'meme'], ['PEPE', '페페', 'meme'], ['WIF', '도그위프햇', 'meme'], ['TRUMP', '오피셜트럼프', 'meme'], ['PENGU', '펏지펭귄', 'meme'],
 ];
 const KCAT = { major: { n: '메이저', c: '#f08c00' }, l1: { n: '레이어1', c: '#5b4bd6' }, defi: { n: '디파이', c: '#0e9f6e' }, meme: { n: '밈', c: '#e8384f' } };
 const KC = {}; KCOINS.forEach(([a, n, c]) => { KC['KRW-' + a] = { id: 'KRW-' + a, a, n, c }; });
@@ -45,10 +45,10 @@ function kConnect() {
   ws.onerror = () => { try { ws.close(); } catch {} };
 }
 const kRaw = code => (KP[code] && KP[code].p) || 0;                                        // 진짜 업비트 가격
-const kPx = code => { const o = KP[code]; return o && o.p ? o.p * gmMult(code, now(), o.c) : 0; };   // 게임 가격 (gm.js)
+const kPx = code => (KP[code] && KP[code].p) || 0;                                         // 업비트 실시간 가격 그대로 반영
 const kBase = code => { const o = KP[code]; return o && o.p ? o.p / (1 + (o.c || 0)) : 0; };      // 어제 종가(진짜)
-const kChgG = code => { const b = kBase(code); return b ? kPx(code) / b - 1 : 0; };               // 게임 가격 기준 등락률
-const kFresh = code => GM.ready && KP[code] && Date.now() - KP[code].t < 15000;
+const kChgG = code => (KP[code] && KP[code].c) || 0;                                       // 업비트 24시간 등락률
+const kFresh = code => KP[code] && Date.now() - KP[code].t < 15000;
 const kLive = () => Date.now() - KQ.last < 6000;
 // 코인 가격 표시: 업비트처럼 가격대에 맞는 소수점
 function kWon(p) {
@@ -138,7 +138,7 @@ async function kStipend() {
 function kTick() {
   if (!kLive() && Date.now() - KQ.poll > 3000) kFetchTickers();
   uTick(); gTick();
-  if (S.me && !S.readOnly && S.loaded) { kGrant40(); kGrant30(); kRedist(); kStipend(); kCoupon(); fScan(); fTrap(); }   // 현금 자동 투자(kCashTax)는 없앴어요(2026-11-12)
+  if (S.me && !S.readOnly && S.loaded) { kGrant40(); kGrant30(); kRedist(); kStipend(); kCoupon(); fScan(); }   // 진짜 시세 반영 (고배율 털기·자동투자 없음)
 }
 
 /* ───────── 거래 ───────── */
@@ -187,6 +187,7 @@ function realWorth(me) {
   if ((me === S.me || me.id === S.uid) && typeof C !== 'undefined') {
     if (C.rk && C.rk.live) v += C.rk.bet;
     if (C.mn && C.mn.live) v += C.mn.bet;
+    if (C.sd && C.sd.live) v += C.sd.myBet || 0;
   }
   return v;
 }
@@ -247,7 +248,7 @@ function kRow(c) {
   const pnl = mp.reduce((a, y) => a + y.pnl, 0), P = mp.reduce((a, y) => a + y.principal, 0);
   const sub = mp.length ? (fu ? `<span class="postag ${fu.d > 0 ? 'long' : 'short'}">${fu.label}</span> ` : '') + (sp ? `<span class="mine">${kQty(sp.q)} ${c.a}</span> ` : '') + `<b class="rowpnl ${cls(pnl)}">${signKrw(pnl)} (${pctTxt(P ? pnl / P : 0)})</b>`
     : `<span class="tk">${c.a}</span>${o.v ? ` · ${krwUnits(o.v)}` : ''}`;
-  return `<div class="srow${fl ? ' row f' + fl : ''}"><button class="srow-main" type="button" data-kcoin="${c.id}">${kBadge(c)}<span class="sname"><b>${esc(c.n)}${gmBadgeHTML(c.id)}</b><small>${sub}</small></span>
+  return `<div class="srow${fl ? ' row f' + fl : ''}"><button class="srow-main" type="button" data-kcoin="${c.id}">${kBadge(c)}<span class="sname"><b>${esc(c.n)}</b><small>${sub}</small></span>
     <span class="sprice"><div class="p num${fl ? ' f' + fl : ''}">${p ? kWon(p) : '…'}</div><div class="c num ${cls(ch)}">${p ? (ch > 0 ? '+' : '') + (ch * 100).toFixed(2) + '%' : ''}</div></span></button>
     <span class="tbtns"><button class="tb trade${mp.length ? ' lit' : ''}" type="button" data-kcoin="${c.id}">거래</button></span></div>`;
 }
@@ -259,7 +260,7 @@ async function kLoadChart(sym) {
   const ent = KQ.chart[sym]; if (ent && Date.now() - ent.t < 60e3) return;
   KQ.chart[sym] = { t: Date.now(), pts: ent ? ent.pts : null };
   try { const a = await (await upFetch(`${UPBIT}/candles/minutes/15?market=${sym}&count=96`)).json();
-    KQ.chart[sym] = { t: Date.now(), pts: gmChartPts(sym, a.reverse().map(c => [Date.parse(c.candle_date_time_utc + 'Z'), c.trade_price]), kBase(sym), 3) }; kDrawChart(); } catch {}
+    KQ.chart[sym] = { t: Date.now(), pts: a.reverse().map(c => [Date.parse(c.candle_date_time_utc + 'Z'), c.trade_price]) }; kDrawChart(); } catch {}
 }
 function kDrawChart() {
   const cv = $('#kChart'), sh = S.sheet; if (!cv || !sh || !sh.sym) return; const ent = KQ.chart[sh.sym]; if (!ent || !ent.pts || !ent.pts.length) return;
@@ -274,7 +275,7 @@ function renderKCoinSheet(b, sh) {
   const canTrade = me && !S.readOnly;
   const modes = [['buy', '매수'], ['sell', '매도'], ['fut', '선물 롱·숏']];
   b.innerHTML = `<div class="shead">${kBadge(c)}<div><h3>${esc(c.n)}</h3><small>${c.a} · ${KCAT[c.c].n} · 업비트 원화마켓</small></div></div>
-    <div class="bigp"><div class="p num" id="kLivePrice">${kPx(c.id) ? kWon(kPx(c.id)) + '원' : '…'}</div><div class="c num"><span class="${cls(kChgG(c.id))}" id="kLivePct">어제보다 ${kPx(c.id) ? pctTxt(kChgG(c.id)) : ''}</span> <span id="kBadge">${gmBadgeHTML(c.id)}</span></div><div class="realpx">진짜 시세 <b class="num">${o.p ? kWon(o.p) + '원' : '…'}</b></div></div>
+    <div class="bigp"><div class="p num" id="kLivePrice">${kPx(c.id) ? kWon(kPx(c.id)) + '원' : '…'}</div><div class="c num"><span class="${cls(kChgG(c.id))}" id="kLivePct">어제보다 ${kPx(c.id) ? pctTxt(kChgG(c.id)) : ''}</span></div></div>
     <div class="chartbox"><canvas class="chart" id="kChart" aria-label="최근 24시간 차트"></canvas><i class="cpulse"></i></div>
     ${holdersHTML(c.id)}${rumorRowHTML(c.id)}
     <div class="info info3"><div>24시간 거래대금<b class="num">${o.v ? krwUnits(o.v) : '-'}</b></div>
@@ -306,7 +307,6 @@ function kLiveSheet() {
   const gp = kPx(sh.sym), gc = kChgG(sh.sym);
   if (lp && gp) flashText(lp, kWon(gp) + '원');
   if (pc && gp) { pc.className = 'num ' + cls(gc); pc.textContent = '어제보다 ' + pctTxt(gc); }
-  const bd = $('#kBadge'); if (bd) bd.innerHTML = gmBadgeHTML(sh.sym); const rp = document.querySelector('.realpx b'); if (rp && o.p) rp.textContent = kWon(o.p) + '원';
   kDrawChart(); kUpdateEst();
 }
 
@@ -369,7 +369,7 @@ function kClick(t) {
   if (d.fdir) { S.sheet.fd = +d.fdir; renderSheet(); return true; }
   if (d.flev) { S.sheet.fx = +d.flev; renderSheet(); return true; }
   if (d.kown) { S.kOwn = d.kown; document.querySelectorAll('[data-kown]').forEach(b => b.setAttribute('aria-selected', b.dataset.kown === S.kOwn)); renderCoins(); return true; }
-  if (d.km) { S.sheet.m = d.km; S.sheet.amt = ''; S.sheet.all = false; renderSheet(); return true; }
+  if (d.km) { S.sheet.m = d.km; S.sheet.amt = ''; S.sheet.qty = ''; S.sheet.all = false; renderSheet(); return true; }
   if (d.kfrac && S.sheet.m === 'fut') { const sh = S.sheet; S.futPct = +d.kfrac; LS.set('futPct', S.futPct); sh.amtTouched = false; renderSheet(); return true; }   // 롱·숏: 비율을 기억해 두고 자동으로 채워요
   // 현물 빠른 버튼: 누를 때마다 '살 수 있는 최대'의 1·10·25·50%씩 더해요 (최대 100%)
   if ((d.kadd || d.kclr) && S.sheet.qmode && !(S.sheet.type === 'us' && uWhole(S.sheet.sym))) { const sh = S.sheet, s = spotQ(sh); sh.all = false;

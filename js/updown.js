@@ -44,7 +44,7 @@ async function udEndPrice(r) {
     const to = new Date(r.end + 60e3).toISOString().slice(0, 19);
     const a = await (await upFetch(`${UPBIT}/candles/minutes/1?market=${r.sym}&to=${to}&count=2`)).json();
     const c = a.find(x => Date.parse(x.candle_date_time_utc + 'Z') <= r.end) || a[a.length - 1];
-    return c ? c.trade_price * gmMult(r.sym, r.end, KP[r.sym] && KP[r.sym].c) : kPx(r.sym);   // 게임 가격으로
+    return c ? c.trade_price : kPx(r.sym);
   } catch { return kPx(r.sym); }
 }
 async function udSettle() {
@@ -62,7 +62,7 @@ async function udSettle() {
   if (win) { bigWin(net, `⚡ ${c.a} ${r.d > 0 ? '올랐어요' : '내렸어요'}! ${me.udStreak >= 2 ? me.udStreak + '연승 ' : ''}적중`); if (net >= 1e8 || me.udStreak >= 3) addFeed({ kind: 'casino', game: `1분 업다운 ${me.udStreak}연승`, mult: r.m, amt: net }); }
   else if (tie) toast(`➖ ${c.a} 가격이 그대로라 ${won(r.bet)} 돌려받았어요`);
   else { toast(`😭 ${c.a} ${r.d > 0 ? '내렸어요' : '올랐어요'}… -${won(r.bet)}`); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); buzz(80); if (r.bet >= 1e8) addFeed({ kind: 'casino', game: '1분 업다운', mult: 0, amt: net }); }
-  renderAll(); if (S.tab === 'shop' && S.shopView === 'game') renderCasino();
+  renderAll(); if (S.tab === 'casino') renderCasino();
 }
 // 1초마다: 결과 정하기 + 게임 화면이면 시계·가격·그래프만 고쳐요 (전체 다시 그리기 없이)
 function udTick() {

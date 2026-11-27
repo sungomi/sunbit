@@ -3,23 +3,23 @@
    시세: CNBC 공개 시세(키 없음, 브라우저에서 바로 됨). 5초마다 한 번에 전 종목 + 원/달러 환율.
    프리·애프터마켓 가격도 받아서, 장 밖 시간엔 그 가격으로 거래해요. 정규장이 닫혀 있고 시간외도 없으면 마지막 가격이에요.
    살 때 원화를 실시간 환율로 자동 환전해요(토스·키움처럼). 소수점 거래 · 수수료 0.1% · 현물만. */
-// 종목 · 이름 · 분류. 이름은 진짜 회사가 아니라 살짝 바꾼 패러디예요(게임 가격이라서). ⚠️ 기호(티커)는 지갑 키(US_티커)라 지우거나 바꾸면 가진 사람 주식이 사라져요. 분류·이름·순서는 바꿔도 돼요
+// 종목 · 이름 · 분류. ⚠️ 기호(티커)는 지갑 키(US_티커)라 지우거나 바꾸면 가진 사람 주식이 사라져요. 분류·이름·순서는 바꿔도 돼요
 const USX = [
-  ['AAPL', '애뿔', 'tech'], ['MSFT', '마이크로쏘프트', 'tech'], ['GOOGL', '알파뱃', 'tech'], ['AMZN', '아마쫀', 'tech'], ['META', '메따', 'tech'], ['NFLX', '넷플릭쓰', 'tech'], ['ORCL', '오라끌', 'tech'],
-  ['CRM', '세일즈포쓰', 'tech'], ['ADBE', '어도삐', 'tech'], ['IBM', 'IBN', 'tech'], ['CSCO', '씨스코', 'tech'], ['DELL', '댈', 'tech'], ['ANET', '아리스따', 'tech'],
-  ['NVDA', '엔비디야', 'semi'], ['AVGO', '브로드껌', 'semi'], ['TSM', 'TSNC', 'semi'], ['AMD', 'AND', 'semi'], ['MU', '마이크롱', 'semi'], ['INTC', '인뗄', 'semi'], ['ARM', 'ARN', 'semi'],
-  ['QCOM', '퀄껌', 'semi'], ['ASML', 'ASNL', 'semi'], ['TXN', '텍사쓰인스트루먼트', 'semi'], ['AMAT', '어플라이드머티리얼쓰', 'semi'], ['LRCX', '램리써치', 'semi'], ['SMCI', '수퍼마이크로', 'semi'], ['MRVL', '마벨르', 'semi'],
-  ['PLTR', '빨란티어', 'ai'], ['SNOW', '스노플레이크', 'ai'], ['CRWD', '크라우드스트라익', 'ai'], ['NOW', '써비스나우', 'ai'], ['PANW', '빨로알토', 'ai'], ['SHOP', '쑈피파이', 'ai'], ['UBER', '우뻐', 'ai'],
-  ['DDOG', '데이터도그', 'ai'], ['NET', '클라우드플래어', 'ai'], ['APP', '앱러뷰', 'ai'],
-  ['TSLA', '테쓸라', 'ev'], ['RIVN', '리비양', 'ev'], ['LCID', '루씨드', 'ev'], ['NIO', '니요', 'ev'], ['RKLB', '로켓랩쓰', 'ev'], ['ASTS', 'AST스페이스모빌', 'ev'], ['JOBY', '조비에어', 'ev'], ['AVAV', '에어로바이런트', 'ev'],
-  ['COIN', '코인베이쓰', 'crypto'], ['MSTR', '스트래티쥐', 'crypto'], ['HOOD', '로빈훗', 'crypto'], ['MARA', '마라홀딩쓰', 'crypto'], ['RIOT', '라이엇플랫폼쓰', 'crypto'], ['CLSK', '클린스빠크', 'crypto'], ['CRCL', '써클', 'crypto'], ['SOFI', '쏘파이', 'crypto'], ['PYPL', '페이빨', 'crypto'],
-  ['IONQ', '아이언큐', 'qnt'], ['RGTI', '리게띠', 'qnt'], ['QBTS', '디웨이부', 'qnt'], ['QUBT', '콴텀컴퓨팅', 'qnt'], ['OKLO', '오끌로', 'qnt'], ['CEG', '컨스텔레이숀', 'qnt'], ['VST', '비쓰트라', 'qnt'],
-  ['JPM', 'JP모군', 'fin'], ['BAC', '뱅크오브어메리카', 'fin'], ['GS', '골드만싹스', 'fin'], ['V', '비짜', 'fin'], ['MA', '마스타카드', 'fin'],
-  ['KO', '코까콜라', 'cons'], ['PEP', '펲시코', 'cons'], ['MCD', '맥도널두', 'cons'], ['SBUX', '스타벅쓰', 'cons'], ['NKE', '나이끼', 'cons'], ['COST', '코스뜨코', 'cons'], ['WMT', '월마뜨', 'cons'], ['DIS', '디쥬니', 'cons'], ['GME', '게임스땁', 'cons'],
-  ['LLY', '일라이릴리리', 'bio'], ['NVO', '노보노디스끄', 'bio'], ['UNH', '유나이티드헬쓰', 'bio'], ['JNJ', '존슨앤존쓴', 'bio'], ['PFE', '화이짜', 'bio'], ['MRNA', '모더냐', 'bio'], ['HIMS', '힘쓰앤허쓰', 'bio'],
-  ['XOM', '엑쓴모빌', 'ind'], ['CVX', '셰브롱', 'ind'], ['BA', '뽀잉', 'ind'], ['CAT', '캐터삘러', 'ind'], ['GE', 'GI에어로', 'ind'], ['LMT', '록히드마띤', 'ind'],
-  ['SPY', 'S&B500 ETF', 'etf'], ['QQQ', '나스닭100 ETF', 'etf'], ['TQQQ', '나스닭 3배 ETF', 'etf'], ['SQQQ', '나스닭 -3배 ETF', 'etf'], ['SOXL', '반도체 3배 ETF', 'etf'], ['SOXS', '반도체 -3배 ETF', 'etf'],
-  ['DIA', '다우죤스 ETF', 'etf'], ['IWM', '러쎌2000 ETF', 'etf'], ['ARKK', '아끄 이노베이션', 'etf'], ['SCHD', '배당 ETF', 'etf'], ['TLT', '미국 장기채 ETF', 'etf'],
+  ['AAPL', '애플', 'tech'], ['MSFT', '마이크로소프트', 'tech'], ['GOOGL', '알파벳', 'tech'], ['AMZN', '아마존', 'tech'], ['META', '메타', 'tech'], ['NFLX', '넷플릭스', 'tech'], ['ORCL', '오라클', 'tech'],
+  ['CRM', '세일즈포스', 'tech'], ['ADBE', '어도비', 'tech'], ['IBM', 'IBM', 'tech'], ['CSCO', '시스코', 'tech'], ['DELL', '델', 'tech'], ['ANET', '아리스타', 'tech'],
+  ['NVDA', '엔비디아', 'semi'], ['AVGO', '브로드컴', 'semi'], ['TSM', 'TSMC', 'semi'], ['AMD', 'AMD', 'semi'], ['MU', '마이크론', 'semi'], ['INTC', '인텔', 'semi'], ['ARM', 'ARM', 'semi'],
+  ['QCOM', '퀄컴', 'semi'], ['ASML', 'ASML', 'semi'], ['TXN', '텍사스인스트루먼트', 'semi'], ['AMAT', '어플라이드머티리얼즈', 'semi'], ['LRCX', '램리서치', 'semi'], ['SMCI', '슈퍼마이크로', 'semi'], ['MRVL', '마벨', 'semi'],
+  ['PLTR', '팔란티어', 'ai'], ['SNOW', '스노우플레이크', 'ai'], ['CRWD', '크라우드스트라이크', 'ai'], ['NOW', '서비스나우', 'ai'], ['PANW', '팔로알토', 'ai'], ['SHOP', '쇼피파이', 'ai'], ['UBER', '우버', 'ai'],
+  ['DDOG', '데이터독', 'ai'], ['NET', '클라우드플레어', 'ai'], ['APP', '앱러빈', 'ai'],
+  ['TSLA', '테슬라', 'ev'], ['RIVN', '리비안', 'ev'], ['LCID', '루시드', 'ev'], ['NIO', '니오', 'ev'], ['RKLB', '로켓랩', 'ev'], ['ASTS', 'AST스페이스모바일', 'ev'], ['JOBY', '조비에비에이션', 'ev'], ['AVAV', '에어로바이런먼트', 'ev'],
+  ['COIN', '코인베이스', 'crypto'], ['MSTR', '스트래티지', 'crypto'], ['HOOD', '로빈후드', 'crypto'], ['MARA', '마라홀딩스', 'crypto'], ['RIOT', '라이엇플랫폼스', 'crypto'], ['CLSK', '클린스파크', 'crypto'], ['CRCL', '서클', 'crypto'], ['SOFI', '소파이', 'crypto'], ['PYPL', '페이팔', 'crypto'],
+  ['IONQ', '아이온큐', 'qnt'], ['RGTI', '리게티', 'qnt'], ['QBTS', '디웨이브', 'qnt'], ['QUBT', '퀀텀컴퓨팅', 'qnt'], ['OKLO', '오클로', 'qnt'], ['CEG', '컨스텔레이션', 'qnt'], ['VST', '비스트라', 'qnt'],
+  ['JPM', 'JP모건', 'fin'], ['BAC', '뱅크오브아메리카', 'fin'], ['GS', '골드만삭스', 'fin'], ['V', '비자', 'fin'], ['MA', '마스터카드', 'fin'],
+  ['KO', '코카콜라', 'cons'], ['PEP', '펩시코', 'cons'], ['MCD', '맥도날드', 'cons'], ['SBUX', '스타벅스', 'cons'], ['NKE', '나이키', 'cons'], ['COST', '코스트코', 'cons'], ['WMT', '월마트', 'cons'], ['DIS', '디즈니', 'cons'], ['GME', '게임스탑', 'cons'],
+  ['LLY', '일라이릴리', 'bio'], ['NVO', '노보노디스크', 'bio'], ['UNH', '유나이티드헬스', 'bio'], ['JNJ', '존슨앤드존슨', 'bio'], ['PFE', '화이자', 'bio'], ['MRNA', '모더나', 'bio'], ['HIMS', '힘스앤허스', 'bio'],
+  ['XOM', '엑슨모빌', 'ind'], ['CVX', '셰브론', 'ind'], ['BA', '보잉', 'ind'], ['CAT', '캐터필러', 'ind'], ['GE', 'GE에어로', 'ind'], ['LMT', '록히드마틴', 'ind'],
+  ['SPY', 'S&P500 ETF', 'etf'], ['QQQ', '나스닥100 ETF', 'etf'], ['TQQQ', '나스닥 3배 ETF', 'etf'], ['SQQQ', '나스닥 -3배 ETF', 'etf'], ['SOXL', '반도체 3배 ETF', 'etf'], ['SOXS', '반도체 -3배 ETF', 'etf'],
+  ['DIA', '다우존스 ETF', 'etf'], ['IWM', '러셀2000 ETF', 'etf'], ['ARKK', '아크 이노베이션', 'etf'], ['SCHD', '배당 ETF', 'etf'], ['TLT', '미국 장기채 ETF', 'etf'],
 ];
 // 현물(원자재): CNBC 기호 · 표시 이름 · 분류 · 단위. 금·은·백금은 현물 가격, 나머지는 최근월 선물 가격
 const CMX = [['XAU=', 'GOLD', '금', 'metal', '온스'], ['XAG=', 'SILV', '은', 'metal', '온스'], ['XPT=', 'PLAT', '백금', 'metal', '온스'], ['@HG.1', 'COPR', '구리', 'metal', '파운드'],
@@ -71,10 +71,10 @@ async function uFetch() {
 }
 function uTick() { if (Date.now() - UQ.poll > 5000) uFetch(); }
 const uRaw = id => (UP[id] && UP[id].p) || 0;                // 진짜 달러 가격
-const uPx = id => { const o = UP[id]; if (!o || !o.p) return 0; return id === 'FX_USD' ? o.p : o.p * gmMult(id, now(), o.base ? o.p / o.base - 1 : 0); };   // 게임 가격(달러)
+const uPx = id => (UP[id] && UP[id].p) || 0;                 // 실시간 시세 그대로 반영
 const uWon = id => uPx(id) * FX.p;                           // 원화로
-const uChg = id => { if (id === 'FX_USD') return FX.c; const o = UP[id]; return o && o.base ? uPx(id) / o.base - 1 : 0; };   // 게임 가격 기준
-const uFresh = id => UP[id] && FX.p && Date.now() - UP[id].t < 30000 && (id === 'FX_USD' || GM.ready);
+const uChg = id => { if (id === 'FX_USD') return FX.c; const o = UP[id]; return o && o.base ? o.p / o.base - 1 : 0; };   // 실시간 등락률
+const uFresh = id => UP[id] && FX.p && Date.now() - UP[id].t < 30000;
 const uLive = () => Date.now() - UQ.last < 20000 && FX.p;
 const ST_TXT = { REG_MKT: '정규장', PRE_MKT: '프리마켓', POST_MKT: '애프터마켓' };
 const uSt = id => (UC[id] && UC[id].m !== 'us' ? '실시간' : ST_TXT[(UP[id] || {}).st] || '장 마감');
@@ -144,13 +144,13 @@ async function uLoadChart(id) {
     if (UC[id].m !== 'us') {   // 현물·달러는 거의 24시간 거래 → 최근 24시간
       const tEnd = bars[bars.length - 1].tradeTimeinMills, l2 = bars.filter(b => b.tradeTimeinMills >= tEnd - D), st2 = Math.max(1, Math.floor(l2.length / 240));
       const raw2 = l2.filter((b, i) => i % st2 === 0 || i === l2.length - 1).map(b => [b.tradeTimeinMills, numOf(b.close)]);
-      UCH[id] = { t: Date.now(), pts: id === 'FX_USD' ? raw2 : gmChartPts(id, raw2, (UP[id] || {}).base, 1), t0: tEnd - D, t1: tEnd, roll: true }; uDrawChart(); return;
+      UCH[id] = { t: Date.now(), pts: raw2, t0: tEnd - D, t1: tEnd, roll: true }; uDrawChart(); return;
     }
     const day = bars[bars.length - 1].tradeTime.slice(0, 8), list = bars.filter(b => b.tradeTime.slice(0, 8) === day);
     const step = Math.max(1, Math.floor(list.length / 240)), pts = list.filter((b, i) => i % step === 0 || i === list.length - 1).map(b => [b.tradeTimeinMills, numOf(b.close)]);
     // 그날 04:00(동부시간)부터 16시간 = 20:00까지를 가로축으로
     const first = list[0], hh = +first.tradeTime.slice(8, 10), mm = +first.tradeTime.slice(10, 12), t0 = first.tradeTimeinMills - ((hh - 4) * 60 + mm) * 6e4;
-    UCH[id] = { t: Date.now(), pts: gmChartPts(id, pts, (UP[id] || {}).base, 1), t0, t1: t0 + 16 * H };
+    UCH[id] = { t: Date.now(), pts, t0, t1: t0 + 16 * H };
     uDrawChart();
   } catch {}
 }
@@ -161,24 +161,43 @@ function uDrawChart() {
   drawTChart(cv, pts, { t0: roll ? t - D : ent.t0, t1: roll ? t : ent.t1, base: isFx ? FX.p / (1 + FX.c) : (UP[sh.sym] || {}).base, fmt: v => isFx ? v.toFixed(1) : '$' + v.toFixed(2), stepH: roll ? 6 : 4 });
 }
 
-/* ───────── 시트 ───────── */
+/* ───────── 시트 (토스증권 스타일 구매·판매) ───────── */
 function renderUSSheet(b, sh) {
   const c = UC[sh.sym], me = S.me, ch = uChg(c.id), whole = uWhole(c.id), isFx = c.m === 'fx';
   if (sh.m !== 'sell' && sh.m !== 'fut') sh.m = 'buy';
   const held = me && (me.uHold || {})[c.id], avg = held ? me.uCost[c.id] : 0, pos = held ? uPositions(me).find(x => x.sym === c.id && x.kind === 'us') : null;
-  const unit = isFx ? '달러' : '주';
-  // 현물은 매수·매도 한 화면: 한 번 넣은 수량(주식·달러) 또는 금액(원자재)으로 [매수하기] [매도하기]
-  const allBtn = held ? `<button type="button" data-kall="1" aria-pressed="${!!sh.all}">보유 전부</button>` : '';
-  const qtyForm = `<div class="qtyrow"><button type="button" data-uqs="-1" aria-label="줄이기">−</button><input id="uQtyIn" type="number" inputmode="numeric" min="0" step="1" value="${sh.all ? '' : sh.qty || ''}" placeholder="${sh.all ? '보유 전부' : '몇 ' + unit}" aria-label="수량"><button type="button" data-uqs="1" aria-label="늘리기">+</button></div>
-      ${spotQuickHTML(sh, held)}`;
-  const amtForm = spotQtyHTML(sh, held);   // 원자재: 온스·배럴 같은 단위로 개수 입력
-  b.innerHTML = `<div class="shead">${uBadge(c)}<div><h3>${esc(c.n)}</h3><small>${c.a} · ${catOf(c).n} · <span id="uSt">${uSt(c.id)}</span></small></div></div>
-    <div class="bigp"><div class="p num" id="uLivePrice">${uPx(c.id) ? uPrice(c.id) : '…'}</div><div class="c num"><span class="${cls(ch)}" id="uLivePct">${pctTxt(ch)}</span> <span class="dim" id="uLiveWon">${isFx ? '1달러' : '≈ ' + krw(uWon(c.id))}</span></div>${(UP[c.id] || {}).cap ? `<div class="mcap">시가총액 <b class="num">${usdBig(UP[c.id].cap)}</b> · 약 ${krwUnits(UP[c.id].cap * FX.p)}원</div>` : ''}</div>
-    <div class="chartbox"><canvas class="chart" id="uChart" aria-label="하루 차트"></canvas><i class="cpulse"></i></div>
-    ${held ? `<div class="kline"><span>내 보유 <b class="num">${uQty(held, c.id)}</b>${isFx ? '' : ` · ${usd(uUsdOf(c.id, held))}`} · 평단 ${krw(avg)}</span><span><b class="num ${cls(pos.pnl)}">${signKrw(pos.pnl)}</b></span></div>` : ''}
-    ${holdersHTML(c.id)}${c.m !== 'fx' ? rumorRowHTML(c.id) : ''}
-    ${me && !S.readOnly ? `<div class="seg seg2">${[['buy', '현물 매수·매도'], ['fut', '롱·숏']].map(([m, l]) => `<button type="button" data-km="${m}" aria-pressed="${m === 'fut' ? sh.m === 'fut' : sh.m !== 'fut'}">${l}</button>`).join('')}</div>
-      ${sh.m === 'fut' ? fFormHTML(sh) : `${whole ? qtyForm : amtForm}<div class="est est2" id="kEst"></div><div class="pick2 bs2"><button class="cta buy" id="kBuyGo" type="button">매수하기</button><button class="cta sell" id="kSellGo" type="button">매도하기</button></div>`}` : ''}`;
+  const unit = isFx ? '달러' : '주', isBuy = sh.m === 'buy', isSell = sh.m === 'sell';
+  const stTxt = uSt(c.id), isLiveMkt = stTxt === '정규장' || stTxt === '실시간';
+  const qtyVal = sh.all && isSell ? String(Math.floor(held || 0)) : (sh.qty || '');
+  const tossOrder = whole ? `<div class="toss-order">
+      <div class="toss-row"><span>주문 유형</span><b>시장가 · <span id="tUnitPx">${uPx(c.id) ? uPrice(c.id) : '…'}</span></b></div>
+      <div class="toss-qtybox ${isBuy ? 'buy' : 'sell'}">
+        <div class="toss-qline"><input id="uQtyIn" class="toss-qin num" type="number" inputmode="numeric" min="0" step="1" value="${qtyVal}" placeholder="0" aria-label="수량"><span class="toss-qunit">${unit}</span></div>
+        <div class="toss-qsub num" id="tEstSub">수량을 입력해 주세요</div>
+      </div>
+      <div class="toss-pcts">${[['.1', '10%'], ['.25', '25%'], ['.5', '50%'], ['1', '최대']].map(([v, l]) => `<button type="button" data-tpct="${v}">${l}</button>`).join('')}</div>
+      <div class="toss-meta" id="kEst"></div>
+      <div class="toss-pad">${['1', '2', '3', '4', '5', '6', '7', '8', '9', 'C', '0', '⌫'].map(k => `<button type="button" data-tpad="${k}">${k === 'C' ? '초기화' : k}</button>`).join('')}</div>
+      <button class="toss-cta ${isBuy ? 'buy' : 'sell'}" id="tDoTrade" type="button"></button>
+    </div>`
+    : `<div class="toss-order">${spotQtyHTML(sh, held)}<div class="toss-meta" id="kEst"></div><button class="toss-cta ${isBuy ? 'buy' : 'sell'}" id="tDoTrade" type="button"></button></div>`;
+  b.innerHTML = `<div class="toss-wrap">
+    <div class="toss-head">${uBadge(c)}<div class="toss-title"><h3>${esc(c.n)}</h3><small>${c.a} · ${catOf(c).n} <span class="toss-st${isLiveMkt ? ' live' : ''}" id="uSt">${stTxt}</span></small></div></div>
+    <div class="toss-price">
+      <div class="tp-main num" id="uLivePrice">${uPx(c.id) ? uPrice(c.id) : '…'}</div>
+      <div class="tp-sub num"><span class="${cls(ch)}" id="uLivePct">어제보다 ${pctTxt(ch)}</span><span class="tp-won" id="uLiveWon">${isFx ? '1달러 기준' : '≈ ' + krw(uWon(c.id))}</span></div>
+      ${(UP[c.id] || {}).cap ? `<div class="tp-cap">시가총액 <b class="num">${usdBig(UP[c.id].cap)}</b> · 약 ${krwUnits(UP[c.id].cap * FX.p)}원</div>` : ''}
+    </div>
+    <div class="chartbox toss-chart"><canvas class="chart" id="uChart" aria-label="하루 차트"></canvas><i class="cpulse"></i></div>
+    ${held ? `<div class="toss-hold"><div><small>내 ${isFx ? '달러' : '주식'}</small><b class="num">${uQty(held, c.id)}</b><span>평단 ${krw(avg)}</span></div><div class="r"><small>평가손익</small><b class="num ${cls(pos.pnl)}">${signKrw(pos.pnl)}</b><span class="num ${cls(pos.pnl)}">${pctTxt(pos.pct)}</span></div></div>` : ''}
+    ${holdersHTML(c.id)}
+    ${me && !S.readOnly ? `<div class="toss-tabs" role="tablist">
+        <button type="button" role="tab" class="tt-buy" data-km="buy" aria-selected="${isBuy}">구매</button>
+        <button type="button" role="tab" class="tt-sell" data-km="sell" aria-selected="${isSell}">판매</button>
+        <button type="button" role="tab" class="tt-fut" data-km="fut" aria-selected="${sh.m === 'fut'}">롱·숏</button>
+      </div>
+      ${sh.m === 'fut' ? fFormHTML(sh) : tossOrder}` : `<p class="hint">${S.readOnly ? '관전 중이라 거래할 수 없어요.' : '참가하면 거래할 수 있어요.'}</p>`}
+  </div>`;
   uLoadChart(c.id); requestAnimationFrame(uDrawChart); uUpdateEst();
 }
 function uUpdateEst() {
@@ -187,18 +206,34 @@ function uUpdateEst() {
   const qi = $('#uQtyIn'); if (qi && !sh.all) sh.qty = qi.value;
   if (sh.m === 'fut') { fUpdateEst(sh); return; }
   if (sh.qmode && !uWhole(sh.sym)) spotQtyRead(sh);
-  const est = $('#kEst'), bb = $('#kBuyGo'), sb = $('#kSellGo'); if (!est || !bb) return;
-  const cb = uCalc({ ...sh, m: 'buy', all: false }), cs = uCalc({ ...sh, m: 'sell' }), held = ((S.me || {}).uHold || {})[sh.sym] || 0;
-  est.innerHTML = `<span>${sh.all ? '' : `살 때 ${cb.line}`}${held ? `${sh.all ? '' : '<br>'}팔 때 ${cs.line}` : ''}</span><span class="num">현금 ${krw((S.me || {}).cash || 0)}${held ? `<br>보유 ${uQty(held, sh.sym)}` : ''}</span>`;
-  { const isQ = uWhole(sh.sym), mx = isQ ? cb.maxQ : spotQ(sh).maxQ; spotPctNow(mx ? (+sh.qty || 0) / mx : 0, sh.all); }
-  const fresh = uFresh(sh.sym);
-  bb.textContent = S.saving ? '처리 중…' : '매수하기'; bb.disabled = S.saving || !fresh || sh.all || !cb.ok;
-  sb.textContent = S.saving ? '처리 중…' : sh.all ? '전부 매도하기' : '매도하기'; sb.disabled = S.saving || !fresh || !held || !cs.ok;
+  const est = $('#kEst'), btn = $('#tDoTrade'), sub = $('#tEstSub');
+  if (!est || !btn) return;
+  const isBuy = sh.m === 'buy', whole = uWhole(sh.sym), isFx = UC[sh.sym].m === 'fx', unit = isFx ? '달러' : '주';
+  const c = uCalc(sh), held = ((S.me || {}).uHold || {})[sh.sym] || 0, fresh = uFresh(sh.sym);
+  const cb = uCalc({ ...sh, m: 'buy', all: false });
+  if (sub) {
+    if (c.q > 0) {
+      const wonAmt = isBuy ? c.amt : c.get;
+      sub.innerHTML = `${isBuy ? '예상 주문 금액' : '예상 수령 금액'} <b>${krw(wonAmt)}</b>${isFx ? '' : ` · ${usd(c.q * uPx(sh.sym))}`}`;
+    } else {
+      sub.textContent = isBuy ? `최대 ${cb.maxQ.toLocaleString('ko-KR')}${unit} 구매 가능` : held ? `최대 ${Math.floor(held).toLocaleString('ko-KR')}${unit} 판매 가능` : `보유 중인 ${isFx ? '달러' : '주식'}이 없어요`;
+    }
+  }
+  const fee = c.q > 0 ? Math.round(c.q * uWon(sh.sym) * U_FEE) : 0;
+  est.innerHTML = isBuy
+    ? `<div><span>구매 가능 금액</span><b class="num">${krw((S.me || {}).cash || 0)}</b></div><div><span>예상 수수료 (0.1%)</span><b class="num">${krw(fee)}</b></div>`
+    : `<div><span>판매 가능 수량</span><b class="num">${held ? uQty(held, sh.sym) : '0' + unit}</b></div><div><span>예상 수수료 (0.1%)</span><b class="num">${krw(fee)}</b></div>`;
+  const upx = $('#tUnitPx'); if (upx && uPx(sh.sym)) upx.textContent = uPrice(sh.sym);
+  if (!whole) { const mq = spotQ(sh).maxQ; spotPctNow(mq ? (+sh.qty || 0) / mq : 0, sh.all); }
+  const qLbl = c.q > 0 ? (whole ? `${c.q.toLocaleString('ko-KR')}${unit} ` : `${uQty(c.q, sh.sym)} `) : '';
+  btn.textContent = S.saving ? '주문 처리 중…' : isBuy ? (c.q > 0 ? `${qLbl}구매하기` : '구매할 수량을 입력해요') : (c.q > 0 ? `${qLbl}판매하기` : '판매할 수량을 입력해요');
+  btn.className = 'toss-cta ' + (isBuy ? 'buy' : 'sell');
+  btn.disabled = S.saving || !fresh || !c.ok;
 }
 function uLiveSheet() {
   const sh = S.sheet; if (!sh || sh.type !== 'us') return; const p = uPx(sh.sym), ch = uChg(sh.sym);
   const a = $('#uLivePrice'), b = $('#uLivePct'), w = $('#uLiveWon'), s = $('#uSt');
-  if (a && p) flashText(a, uPrice(sh.sym)); if (b) { b.textContent = pctTxt(ch); b.className = cls(ch); } if (w && sh.sym !== 'FX_USD') w.textContent = '≈ ' + krw(uWon(sh.sym)); if (s) s.textContent = uSt(sh.sym);
+  if (a && p) flashText(a, uPrice(sh.sym)); if (b) { b.textContent = '어제보다 ' + pctTxt(ch); b.className = cls(ch); } if (w && sh.sym !== 'FX_USD') w.textContent = '≈ ' + krw(uWon(sh.sym)); if (s) s.textContent = uSt(sh.sym);
   uLoadChart(sh.sym); uDrawChart(); uUpdateEst();
 }
 
@@ -209,7 +244,7 @@ function uRow(c) {
   const prev = UQ.shown[c.id]; const fl = prev && p && p !== prev ? (p > prev ? 'u' : 'd') : ''; UQ.shown[c.id] = p;
   const mp = me ? uPositions(me).filter(y => y.sym === c.id) : [], x = mp.find(y => y.kind === 'us'), fu = mp.find(y => y.kind === 'fut');
   const sub = fu ? `<span class="postag ${fu.d > 0 ? 'long' : 'short'}">${fu.label}</span><b class="rowpnl ${cls(fu.pnl)}">${pctTxt(fu.pct)}</b>` : x ? `<span class="mine">${uQty(x.q, c.id)}</span> <b class="rowpnl ${cls(x.pnl)}">${signKrw(x.pnl)} (${pctTxt(x.pct)})</b>` : `<span class="tk">${c.a}</span>${p ? ` · ${krw(uWon(c.id))}` : ''}`;
-  return `<div class="srow${fl ? ' row f' + fl : ''}"><button class="srow-main" type="button" data-us="${c.id}">${uBadge(c)}<span class="sname"><b>${esc(c.n)}${gmBadgeHTML(c.id)}</b><small>${sub}</small></span>
+  return `<div class="srow${fl ? ' row f' + fl : ''}"><button class="srow-main" type="button" data-us="${c.id}">${uBadge(c)}<span class="sname"><b>${esc(c.n)}</b><small>${sub}</small></span>
     <span class="sprice"><div class="p num${fl ? ' f' + fl : ''}">${p ? usd(p) : '…'}</div><div class="c num ${cls(ch)}">${p ? (ch > 0 ? '+' : '') + (ch * 100).toFixed(2) + '%' : ''}</div></span></button>
     <span class="tbtns"><button class="tb trade${mp.length ? ' lit' : ''}" type="button" data-us="${c.id}">거래</button></span></div>`;
 }
@@ -340,10 +375,30 @@ function renderExchange(ctl) {
 }
 uFetch();
 
-// 주식·달러 개수 입력: −/+ 버튼, 1·10·절반·최대(전부)
+// 토스증권 스타일 주식·달러 입력: 비율 버튼(10/25/50/최대), 숫자 키패드, 주문 실행
 document.addEventListener('click', e => {
   const t = e.target.closest && e.target.closest('button'); if (!t || !S.sheet || S.sheet.type !== 'us') return;
   const sh = S.sheet;
+  if (t.id === 'tDoTrade') { uDoTrade(); return; }
+  if (t.dataset.tpct) {
+    const pct = +t.dataset.tpct, isBuy = sh.m === 'buy';
+    const mx = isBuy ? (uCalc({ ...sh, m: 'buy', all: false }).maxQ || 0) : (((S.me || {}).uHold || {})[sh.sym] || 0);
+    sh.all = !isBuy && pct === 1;
+    const q = pct === 1 ? Math.floor(mx) : Math.max(mx >= 1 ? 1 : 0, Math.floor(mx * pct));
+    sh.qty = q > 0 ? String(q) : '';
+    const qi = $('#uQtyIn'); if (qi) qi.value = sh.qty;
+    uUpdateEst(); return;
+  }
+  if (t.dataset.tpad) {
+    const k = t.dataset.tpad; sh.all = false;
+    let cur = String(sh.qty || '').replace(/[^0-9]/g, '');
+    if (k === 'C') cur = '';
+    else if (k === '⌫') cur = cur.slice(0, -1);
+    else if (cur.length < 9) cur = (cur === '0' ? '' : cur) + k;
+    sh.qty = cur;
+    const qi = $('#uQtyIn'); if (qi) qi.value = sh.qty;
+    uUpdateEst(); return;
+  }
   if (t.dataset.uqs) { const c = uCalc({ ...sh, m: 'buy', all: false }); sh.all = false; sh.qty = String(Math.max(0, Math.min(c.maxQ ?? 1e12, Math.floor(+sh.qty || 0) + +t.dataset.uqs))); const i = $('#uQtyIn'); if (i) i.value = sh.qty; uUpdateEst(); }
   if (t.dataset.uqset) { const v = t.dataset.uqset; sh.all = false; const mx = Math.floor(uCalc({ ...sh, m: 'buy', all: false }).maxQ || 0);
     sh.qty = v === 'all' ? '' : String(v === 'max' ? mx : v === '.5' ? Math.floor(mx / 2) : Math.min(mx, +v)); const i = $('#uQtyIn'); if (i) i.value = sh.qty; document.querySelectorAll('[data-kall]').forEach(b => b.setAttribute('aria-pressed', 'false')); uUpdateEst(); }
@@ -362,7 +417,7 @@ function holdersHTML(sym) {
 function ixCard() {
   if (!IXQ.p) return '';
   const ch = IXQ.base ? IXQ.p / IXQ.base - 1 : 0;
-  return `<div class="ixcard ${cls(ch)}"><div class="ix-l"><small>나스닭 종합 <i>${ST_TXT[IXQ.st] || '장 마감'}</i></small><b class="num">${IXQ.p.toLocaleString('en-US', { maximumFractionDigits: 2 })}</b>
+  return `<div class="ixcard ${cls(ch)}"><div class="ix-l"><small>나스닥 종합 <i>${ST_TXT[IXQ.st] || '장 마감'}</i></small><b class="num">${IXQ.p.toLocaleString('en-US', { maximumFractionDigits: 2 })}</b>
     <span class="num ${cls(ch)}">${ch > 0 ? '+' : ''}${(IXQ.p - IXQ.base).toLocaleString('en-US', { maximumFractionDigits: 2 })} (${(ch * 100).toFixed(2)}%)</span></div><canvas id="ixChart" class="ix-c" aria-label="나스닥 하루 그래프"></canvas></div>`;
 }
 async function ixLoad() {
