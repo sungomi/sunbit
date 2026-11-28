@@ -22,15 +22,105 @@ function flashText(el, txt) {
   el.textContent = txt; el.classList.remove('fu', 'fd'); void el.offsetWidth; if (old && nw && old !== nw) el.classList.add(nw > old ? 'fu' : 'fd');
 }
 
-/* ───────── 큰 수익 연출: 화면 가운데 금액이 터지고 진동 ───────── */
+/* ───────── 🔊 Web Audio 합성 효과음 (외부 파일 없이 즉각 반응 · 상단 버튼으로 켜고 끄기) ───────── */
+const SFX = {
+  ctx: null,
+  on: LS.get('sfx', true),
+  init() {
+    if (!this.on) return null;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+      if (!this.ctx) this.ctx = new AC();
+      if (this.ctx.state === 'suspended') this.ctx.resume().catch(() => {});
+      return this.ctx;
+    } catch { return null; }
+  },
+  tone(freq, dur, type = 'sine', vol = .08, delay = 0, freqEnd = null) {
+    const c = this.init(); if (!c) return;
+    try {
+      const t0 = c.currentTime + delay, o = c.createOscillator(), g = c.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t0);
+      if (freqEnd) o.frequency.exponentialRampToValueAtTime(Math.max(20, freqEnd), t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.linearRampToValueAtTime(vol, t0 + 0.012);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t0); o.stop(t0 + dur + 0.02);
+    } catch {}
+  },
+  play(kind, step = 1) {
+    if (!this.on) return;
+    if (kind === 'click') { this.tone(620, .045, 'triangle', .045, 0, 820); }
+    else if (kind === 'tick') { this.tone(780, .04, 'triangle', .055, 0, 520); }
+    else if (kind === 'buy') { this.tone(587, .07, 'triangle', .065, 0); this.tone(880, .12, 'triangle', .075, .055); }
+    else if (kind === 'sell') { this.tone(660, .07, 'sine', .07, 0); this.tone(990, .08, 'sine', .075, .05); this.tone(1320, .14, 'sine', .07, .1); }
+    else if (kind === 'gem') {
+      const scale = [523, 587, 659, 784, 880, 1047, 1175, 1319];
+      const f = scale[Math.min(scale.length - 1, Math.max(0, step - 1))];
+      this.tone(f, .09, 'triangle', .075, 0); this.tone(f * 1.5, .14, 'sine', .06, .045);
+    }
+    else if (kind === 'tease') { this.tone(440, .28, 'sine', .06, 0, 880); this.tone(660, .28, 'triangle', .045, .1, 1320); }
+    else if (kind === 'win') { [523, 659, 784, 1047].forEach((f, i) => this.tone(f, .16, 'triangle', .075, i * .06)); }
+    else if (kind === 'huge') { [523, 659, 784, 1047, 1319].forEach((f, i) => this.tone(f, .2, 'triangle', .085, i * .055)); this.tone(1568, .35, 'sine', .08, .28); }
+    else if (kind === 'mega') {
+      [523, 659, 784, 1047, 1319, 1568, 2093].forEach((f, i) => this.tone(f, .22, 'triangle', .09, i * .05));
+      this.tone(1047, .45, 'sine', .07, .35); this.tone(1568, .5, 'sine', .075, .38);
+    }
+    else if (kind === 'lose') { this.tone(220, .16, 'sawtooth', .06, 0, 110); this.tone(150, .24, 'triangle', .075, .08, 70); }
+  },
+  syncBtn() {
+    const b = $('#sfxBtn'); if (!b) return;
+    b.textContent = this.on ? '🔊' : '🔇';
+    b.classList.toggle('off', !this.on);
+    b.setAttribute('aria-pressed', String(this.on));
+  },
+};
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('#sfxBtn');
+  if (b) { SFX.on = !SFX.on; LS.set('sfx', SFX.on); SFX.syncBtn(); if (SFX.on) SFX.play('buy'); return; }
+  const t = e.target.closest && e.target.closest('button.cta, .betrow button, .cgames button, .nav-in button');
+  if (t && !t.disabled) SFX.play('click');
+});
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => SFX.syncBtn());
+else SFX.syncBtn();
+
+/* ───────── 화면 플래시 & 플로팅 팝업 ───────── */
+function screenFlash(kind = 'win') {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  let el = $('#sflash'); if (!el) { el = document.createElement('div'); el.id = 'sflash'; el.className = 'sflash'; document.body.appendChild(el); }
+  el.className = 'sflash ' + kind; void el.offsetWidth; el.classList.add('go');
+}
+function floatPop(txt, kind = 'up') {
+  const el = document.createElement('div'); el.className = 'fpop ' + kind; el.textContent = txt;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+}
+
+/* ───────── 큰 수익 연출: 3단계 티어(일반 / 억대 대박 / 10억+ 메가) · 숫자 카운트업 · 폭죽 · 사운드 ───────── */
 function bigWin(pnl, label) {
   if (!(pnl > 0)) return;
   let el = $('#bigwin'); if (!el) { el = document.createElement('div'); el.id = 'bigwin'; el.className = 'bigwin'; document.body.appendChild(el); }
-  const huge = pnl >= 1e8;
-  el.innerHTML = `<small>${esc(label || '수익 실현')}</small><b class="num">+${krw(pnl)}</b>`;
-  el.className = 'bigwin' + (huge ? ' huge' : ''); void el.offsetWidth; el.classList.add('go');
-  confetti(); buzz(huge ? [60, 40, 120] : 70);
-  clearTimeout(bigWin._t); bigWin._t = setTimeout(() => el.classList.remove('go'), 1700);
+  const mega = pnl >= 1e9, huge = !mega && pnl >= 1e8;
+  const tag = mega ? '💎 MEGA JACKPOT · ' : huge ? '🔥 대박 · ' : '';
+  el.innerHTML = `<small>${esc(tag + (label || '수익 실현'))}</small><b class="num">+0원</b>`;
+  el.className = 'bigwin' + (mega ? ' mega' : huge ? ' huge' : ''); void el.offsetWidth; el.classList.add('go');
+  const bEl = el.querySelector('b'), t0 = performance.now(), dur = mega ? 650 : huge ? 520 : 380;
+  const step = t => {
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    if (bEl) bEl.textContent = '+' + krw(Math.round(pnl * e));
+    if (k < 1) requestAnimationFrame(step); else if (bEl) bEl.textContent = '+' + krw(pnl);
+  };
+  requestAnimationFrame(step);
+  if (mega) {
+    boom(); setTimeout(() => confetti(['#ffd23f', '#ff3bd4', '#5df2a0', '#6a4cf5']), 260); setTimeout(() => confetti(), 520);
+    SFX.play('mega'); screenFlash('mega'); buzz([80, 40, 100, 40, 160]);
+  } else if (huge) {
+    confetti(); setTimeout(() => confetti(['#ffd23f', '#ff9f1c', '#f2414f']), 240);
+    SFX.play('huge'); screenFlash('win'); buzz([60, 40, 120]);
+  } else {
+    confetti(); SFX.play('win'); screenFlash('win'); buzz(70);
+  }
+  clearTimeout(bigWin._t); bigWin._t = setTimeout(() => el.classList.remove('go'), mega ? 2400 : huge ? 2000 : 1700);
 }
 
 /* ───────── 💼 버튼 상태: 손익 ±5% 넘으면 흔들, 청산 가까우면 빨갛게 깜빡 ───────── */

@@ -20,7 +20,7 @@ function renderHome() {
     } else if (S.loadErr) {
       h += `<div class="card join"><b>서버에서 지갑을 불러오지 못했어요</b><span class="dim" style="font-size:13px;font-weight:600">기존 데이터 보호를 위해 새로고침하거나 계정을 다시 확인해 주세요${S.userEmail ? ` (${esc(S.userEmail)})` : ''}</span><button class="cta soft" type="button" id="switchAcctBtn">🔄 다른 Google 계정으로 로그인</button></div>`;
     } else {
-      h += `<div class="card join"><b>썬빗에 참가하세요</b><span class="dim" style="font-size:13px;font-weight:600">${S.userEmail ? `현재 <b>${esc(S.userEmail)}</b> 계정에는 참가 기록이 없어요.<br>원래 하던 캐릭터가 있다면 아래에서 Google 계정을 바꿔 주세요!` : '50억원으로 시작해요'}</span><button class="cta" type="button" data-join>이 계정으로 새로 참가하기</button>${S.fb && S.mode === 'live' ? `<button class="cta soft" type="button" id="switchAcctBtn" style="margin-top:6px">🔄 다른 Google 계정으로 로그인</button>` : ''}</div>`;
+      h += `<div class="card join"><b>썬빗에 참가하세요</b><span class="dim" style="font-size:13px;font-weight:600">${S.userEmail ? `현재 <b>${esc(S.userEmail)}</b> 계정에는 참가 기록이 없어요.<br>원래 하던 캐릭터가 있다면 아래에서 Google 계정을 바꿔 주세요!` : '100억원으로 시작해요'}</span><button class="cta" type="button" data-join>이 계정으로 새로 참가하기</button>${S.fb && S.mode === 'live' ? `<button class="cta soft" type="button" id="switchAcctBtn" style="margin-top:6px">🔄 다른 Google 계정으로 로그인</button>` : ''}</div>`;
     }
   }
   if (S.readOnly) h += `<p class="hint keep" style="margin:-8px 0 0">관전 모드예요. 거래하려면 방장에게 편집자 초대를 받아야 해요.</p>`;
@@ -44,9 +44,10 @@ function renderHome() {
     cur.slice(S.rankPage * RPG, (S.rankPage + 1) * RPG).forEach((p, j) => {
       const i = S.rankPage * RPG + j, lord = lordOf(p.id, TOPS), r = roiOf(p, p.w);
       const ob = typeof openBountyOf === 'function' ? openBountyOf(p.id) : null;
-      const shOn = typeof focusShieldEnd === 'function' && focusShieldEnd(p.id) > 0;
+      const hideAtk = typeof HIDE_ATK !== 'undefined' && HIDE_ATK;
+      const shOn = !hideAtk && typeof focusShieldEnd === 'function' && focusShieldEnd(p.id) > 0;
       h += `<button class="lrow${p.id === S.uid ? ' isme' : ''}${okPhoto(p.banner) ? ' bn' : ''}" type="button" data-player="${esc(p.id)}"${okPhoto(p.banner) ? ` style="--bn:url(${p.banner})"` : ''}><span class="rk r${i + 1}">${i + 1}</span><span class="avw${isOn(p) ? ' on' : ''}">${ava(p)}</span>
-        <span class="who"><b>${esc(p.name)}</b>${slaveTag(p)}${p.bot ? '<span class="tag bot">봇</span>' : ''}<small class="lv">⚔️LV.${lvOf(p)}${shOn ? ' · 🛡️' : ''}${lord ? ` · <span class="lord">👑 ${lord}</span>` : ''}${i === 0 && bountyOf(p) ? ` · <span class="bounty">💰 현상금 ${krwUnits(bountyOf(p))}</span>` : ''}${ob ? ` · <span class="bounty">📜 수배 ${krwUnits(ob.total)}</span>` : ''}</small></span>
+        <span class="who"><b>${esc(p.name)}</b>${slaveTag(p)}${p.bot ? '<span class="tag bot">봇</span>' : ''}<small class="lv">⚔️LV.${lvOf(p)}${shOn ? ' · 🛡️' : ''}${lord ? ` · <span class="lord">👑 ${lord}</span>` : ''}${!hideAtk && i === 0 && bountyOf(p) ? ` · <span class="bounty">💰 현상금 ${krwUnits(bountyOf(p))}</span>` : ''}${ob ? ` · <span class="bounty">📜 수배 ${krwUnits(ob.total)}</span>` : ''}</small></span>
         <span class="r num"><b>${man(p.w)}원</b><small class="${cls(r)}">${pctTxt(r)}</small></span></button>`;
     });
     h += `</div>`;
@@ -337,10 +338,10 @@ function closeProfile() { closeProfileRaw(); guardOff(); }
 function renderProfile() { renderFriendProfile(); } // 새 프로필 화면 (me.js)
 function renderJoinSheet(b) {
   const prev = (S.players[S.uid] && S.players[S.uid].name) || LS.get('nick', '') || '존버의신';
-  b.innerHTML = `<div class="rv-head"><span class="k">SUNBIT</span><h3>50억원으로 시작</h3></div>
+  b.innerHTML = `<div class="rv-head"><span class="k">SUNBIT</span><h3>100억원으로 시작</h3></div>
     ${S.userEmail ? `<div class="atk-shwarn" style="margin-bottom:8px">현재 로그인된 Google 계정: <b>${esc(S.userEmail)}</b><br><small>기존에 하던 캐릭터가 안 보이면 <b>다른 Google 계정</b>으로 자동 로그인된 상태예요!</small></div>` : ''}
     ${S.fb && S.mode === 'live' ? `<button class="cta soft" type="button" id="switchAcctBtn" style="margin-bottom:10px">🔄 원래 하던 다른 Google 계정으로 로그인</button>` : ''}
-    <p class="hint keep" style="text-align:center">처음 오셨다면 아래에 닉네임을 적고 새 지갑(50억원)을 만드세요.</p>
+    <p class="hint keep" style="text-align:center">처음 오셨다면 아래에 닉네임을 적고 새 지갑(100억원)을 만드세요.</p>
     <div class="field"><label for="nick" class="dim" style="font-size:13px;font-weight:700">닉네임</label><input id="nick" maxlength="10" placeholder="예: 존버의신" value="${esc(prev)}"></div>
     <p class="hint nickwarn">⚠️ 실명은 쓰지 마세요. 닉네임은 순위·채팅에서 모두에게 보여요.</p>
     <button class="cta" type="button" id="joinBtn">새로 참가하기</button>`;
@@ -358,7 +359,7 @@ async function doJoin() {
 // ? 도움말: 지금 보고 있는 탭에 맞는 설명을 보여줘요
 const HELP = {
   home: ['홈', '총자산 순위', [
-    '돈은 <b>원화</b> 하나예요. 처음 <b>50억원</b>. 코인·주식·현물·국채·지분과 게임·상점에 다 같이 써요.',
+    '돈은 <b>원화</b> 하나예요. 처음 <b>100억원</b>. 코인·주식·현물·국채·지분과 게임·상점에 다 같이 써요.',
     '<b>총자산</b> = 현금 + 코인(현물·선물) + 주식 + 국채. 순위는 총자산 순서예요.',
     '<b>💵 지원금</b>: <b>2시간마다 420만원</b>(하루 약 5,000만원)이 자동으로 들어와요. 짝수 시 정각마다, 앱을 꺼 둬도 쌓여요(최대 7일치).',
     '<b>📜 현상수배 게시판</b>: 누구에게나(본인 제외) 한 줄 사유와 함께 현상금을 걸거나 돈을 더 얹을 수 있어요. 돈을 안 얹은 제3자 사냥꾼이 공격·결투로 잡으면 수령하고, 표적이 3번 막아내면 현상금 절반을 역수령해요.',

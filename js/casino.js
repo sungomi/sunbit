@@ -22,7 +22,7 @@ async function cMoney(d) {
 }
 function cFeed(label, mult, net, bet) { if ((mult >= 3 && net > 0) || net >= 1e8 || (mult === 0 && bet >= 1e8)) addFeed({ kind: 'casino', game: label, mult, amt: Math.round(net) }); }
 function cWin(net, label) { if (net > 0) bigWin(net, label); }
-function cLose(txt) { toast(txt); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); buzz(80); }
+function cLose(txt) { toast(txt); document.body.classList.remove('shake'); void document.body.offsetWidth; document.body.classList.add('shake'); buzz(80); if (typeof SFX !== 'undefined') SFX.play('lose'); if (typeof screenFlash === 'function') screenFlash('lose'); }
 const cCanBet = () => { const b = betAmount(); if (!S.me || S.saving || C.busy || S.readOnly) return 0; if (b < MINBET) { toast('걸 금액을 정해주세요'); return 0; } return b; };
 
 function casinoPickerHTML() {
@@ -59,13 +59,15 @@ async function rocketGo() {
   const bet = cCanBet(); if (!bet) return;
   const u = Math.random(), crash = Math.min(RK.MAX, Math.max(1, Math.floor(97 / (100 * (1 - u)) * 100) / 100));
   C.busy = true; if (!(await cMoney(-bet))) { C.busy = false; return; }
-  C.live = true; C.busy = false; C.rk = { live: true, bet, m: 1, crash, cap: Math.min(RK.MAX, cgCap(bet)), t0: performance.now() };
-  renderCasino(); buzz(20);
+  C.live = true; C.busy = false; C.rk = { live: true, bet, m: 1, crash, cap: Math.min(RK.MAX, cgCap(bet)), t0: performance.now(), ms: 0 };
+  renderCasino(); buzz(20); if (typeof SFX !== 'undefined') SFX.play('tick');
   const step = t => {
     const r = C.rk; if (!r || !r.live) return;
     r.m = rkAt((t - r.t0) / 1000);
     if (r.m >= r.cap && r.crash >= r.cap) { r.m = r.cap; rocketEnd(true); return; }   // 최대 배수 도달 → 자동으로 받아요
     if (r.m >= r.crash) { r.m = r.crash; rocketEnd(false); return; }
+    const stage = r.m >= 10 ? 3 : r.m >= 5 ? 2 : r.m >= 2 ? 1 : 0;
+    if (stage > r.ms) { r.ms = stage; buzz(25); if (typeof SFX !== 'undefined') SFX.play('gem', stage + 2); if (typeof floatPop === 'function') floatPop(`🚀 ${stage === 3 ? '10x 돌파!!' : stage === 2 ? '5x 돌파!' : '2x 돌파!'}`, 'up'); }
     const x = $('#rkX'), g = $('#rkGet'), sh = $('#rkShip'), sky = $('#rkSky');
     if (x) { x.textContent = fmtX(r.m); x.style.color = r.m >= 10 ? '#ff3bd4' : r.m >= 3 ? '#ffcf4a' : r.m >= 2 ? '#5df2a0' : ''; }
     if (g) g.textContent = won(Math.floor(r.bet * r.m));
@@ -119,6 +121,8 @@ async function mineOpen(i) {
     renderCasino(); cLose(`💣 폭탄이에요… -${won(r.bet)}`); cFeed('보물상자', 0, -r.bet, r.bet); renderAll(); return;
   }
   r.open.push(i); buzz(25 + r.open.length * 8);
+  if (typeof SFX !== 'undefined') SFX.play('gem', r.open.length);
+  if (typeof floatPop === 'function') floatPop(`💎 ${fmtX(mnMult(r.open.length))}`, 'up');
   if (r.open.length >= MN.N - MN.B) { mineCash(); return; }   // 다 열면 자동으로 받아요
   renderCasino(); const b = document.querySelector(`[data-mn="${i}"]`); if (b) b.classList.add('pop');
 }
@@ -157,7 +161,7 @@ async function slotGo() {
       let all = true;
       for (let i = 0; i < 3; i++) { const el = $('#slR' + i); if (!el) continue; const s = el.firstElementChild;
         if (t - t0 < stopAt[i]) { all = false; if (t - shown[i] > 70) { shown[i] = t; s.textContent = SL.sym[Math.floor(Math.random() * 5)]; el.classList.add('spin'); } }
-        else if (el.classList.contains('spin')) { el.classList.remove('spin'); s.textContent = res[i]; el.classList.add('stop'); buzz(15); if (i === 1 && tease) el.parentElement.classList.add('tease'); } }
+        else if (el.classList.contains('spin')) { el.classList.remove('spin'); s.textContent = res[i]; el.classList.add('stop'); buzz(15); if (typeof SFX !== 'undefined') SFX.play(i === 1 && tease ? 'tease' : 'tick'); if (i === 1 && tease) el.parentElement.classList.add('tease'); } }
       if (all) done(); else requestAnimationFrame(tick);
     };
     requestAnimationFrame(tick);
@@ -166,7 +170,7 @@ async function slotGo() {
   await cMoney(net); C.busy = false;
   C.sl = { res, big: mult >= 30, msg: mult > 1 ? `${res.join('')} <b class="up">${mult}배! +${won(net)}</b>` : mult === 1 ? '🍒🍒 본전!' : `꽝 <b class="down">-${won(bet)}</b>` };
   renderCasino();
-  if (mult > 1) { cWin(net, mult >= 30 ? `🎰 잭팟 ${mult}배!!` : `🎰 ${mult}배`); if (mult >= 30) confetti(); } else if (!mult) buzz(30);
+  if (mult > 1) { cWin(net, mult >= 30 ? `🎰 잭팟 ${mult}배!!` : `🎰 ${mult}배`); if (mult >= 30) confetti(); } else if (!mult) { buzz(30); if (typeof SFX !== 'undefined') SFX.play('lose'); }
   cFeed('슬롯 ' + res.join(''), mult, net, bet); renderAll();
 }
 

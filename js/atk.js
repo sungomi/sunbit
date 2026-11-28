@@ -10,6 +10,9 @@
       - 하극상 보너스: 방어LV - 공격LV ≥ 15 이고 방어자 실질자산 ≥ 공격자 × 2 → 기본 약탈금의 +25% 시스템 보너스 (1회 5억 · 하루 15억 한도).
       - 동네북 방지: 같은 상대를 24시간 롤링 기준 최대 2번까지만 성공 가능 · 24시간 내 3번 털리면 6시간 집중포화 보호막 발동.
       - 선공 시 보호막 파괴: 내 보호막이 켜진 채 남을 먼저 공격·결투하면 확인창을 거쳐 내 보호막이 즉시 해제돼요. */
+// 임시 숨김 플래그 (false로 바꾸면 왕좌 저격 · 공격 기능이 다시 표시돼요)
+const HIDE_ATK = true;
+const HIDE_SNIPE = true;
 const ATK = {
   LOOT_COST: .25, LOOT_P: .25, HUNT_COST: .15, HUNT_TAKE: .50,
   MY_CD: 10 * 60e3, POS_CD: 30 * 60e3, SHIELD: 3 * H, REVENGE: 10 * 60e3, MIN: 100_000,
@@ -178,6 +181,7 @@ const myAtkWait = () => Math.max(0, ((S.me && S.me.atkAt) || 0) + ATK.MY_CD - no
 
 /* ───────── 공격 실행 (공격자) ───────── */
 async function doAttack(tid, field, sym) {
+  if (HIDE_ATK) return;
   const p = S.players[tid] ? { id: tid, ...S.players[tid] } : null; if (!p || !S.me || S.saving || S.readOnly) return;
   const I = atkInfo(p, field, sym); if (!I.ok) { toast(I.why); return; }
   if (myAtkWait()) { toast(`⏳ ${Math.ceil(myAtkWait() / 6e4)}분 뒤에 다시 공격할 수 있어요`); return; }
@@ -277,6 +281,7 @@ async function atkSync() {
 
 /* ───────── 공격 창 (가운데 팝업) ───────── */
 function renderAtkSheet(b, sh) {
+  if (HIDE_ATK) { b.innerHTML = ''; return; }
   const p = S.players[sh.tid] ? { id: sh.tid, ...S.players[sh.tid] } : null; if (!p) { b.innerHTML = ''; return; }
   const I = atkInfo(p, sh.f, sh.sym), a = assetOf(sh.sym), isFut = sh.f === 'kFut' || sh.f === 'uFut', wait = myAtkWait();
   const can = I.ok && !wait && S.me && S.me.cash >= I.cost && !S.saving;
@@ -309,6 +314,7 @@ function renderAtkSheet(b, sh) {
 }
 KSHEETS.atk = renderAtkSheet;
 document.addEventListener('click', e => {
+  if (HIDE_ATK) return;
   const t = e.target.closest && e.target.closest('button'); if (!t) return;
   if (t.dataset.atk) { e.stopPropagation(); const [tid, f, sym] = t.dataset.atk.split('|'); if (!S.me) { openSheet('join'); return; } if (S.sheet) closeSheetRaw(); openSheet('atk', { tid, f, sym }); $('#sheetWrap').classList.add('center'); return; }
   if (t.id === 'atkGo' && S.sheet && S.sheet.type === 'atk') doAttack(S.sheet.tid, S.sheet.f, S.sheet.sym);
@@ -453,6 +459,7 @@ function snipeInfo(tid) {
   return I;
 }
 async function sfGive(tid, amt) {
+  if (HIDE_SNIPE) return;
   const I = snipeInfo(tid); if (!I.ok) { toast(I.why); return; } if (S.saving || S.readOnly) return;
   amt = Math.min(Math.floor(amt), I.left, Math.floor(S.me.cash)); if (!(amt > 0)) return;
   const before = S.me, me = clone(before); me.sf ||= {}; const c = me.sf[tid], fresh = c && c.at > sfLast(tid) && now() - c.at < SNIPE.EXPIRE;
@@ -502,6 +509,7 @@ async function snipeSync() {
   renderAll();
 }
 function renderSnipeSheet(b, sh) {
+  if (HIDE_SNIPE) { b.innerHTML = ''; return; }
   const I = snipeInfo(sh.tid), t = S.players[sh.tid]; if (!t || !I.tr) { b.innerHTML = '<p class="atk-why">1~3등만 노릴 수 있어요</p>'; return; }
   const pct = Math.round(I.prob * 100), fill = Math.min(100, I.pool / I.goal * 100), myC = ((S.me || {}).sf || {})[sh.tid];
   const steps = [1e8, 5e8, 10e8].filter(v => v < I.left);
@@ -520,6 +528,7 @@ function renderSnipeSheet(b, sh) {
 KSHEETS.snipe = renderSnipeSheet;
 // 홈: 1·2·3등 저격판 (접었다 펼 수 있어요)
 function throneHTML() {
+  if (HIDE_SNIPE) return '';
   const R = ranking(); if (R.length < 2 || !S.me) return '';
   const top = R.slice(0, 3), mr = R.findIndex(x => x.id === S.uid) + 1, imTop = mr >= 1 && mr <= 3, open = S.thOpen ?? LS.get('thOpen', false);
   const pools = top.map(p => sfPool(p.id).sum), live = pools.some(v => v > 0);
@@ -530,6 +539,7 @@ function throneHTML() {
       + `<p class="th-note">목표는 상대 총자산 15% · 다 차면 발사 · 실패하면 모은 돈 전부 잃어요${!imTop ? (S.me.duelDay === kstDay(now()) ? ' · 오늘 결투권 사용함' : ' · ⚔️ 결투권 1장') : ''}</p>` : ''}</div>`;
 }
 document.addEventListener('click', e => {
+  if (HIDE_SNIPE) return;
   const tg = e.target.closest && e.target.closest('#thToggle'); if (tg) { S.thOpen = !(S.thOpen ?? LS.get('thOpen', false)); LS.set('thOpen', S.thOpen); renderHome(); return; }
   const t = e.target.closest && e.target.closest('[data-snipe]');
   if (t) { e.stopPropagation(); if (!S.me) { openSheet('join'); return; } if (S.sheet) closeSheetRaw(); openSheet('snipe', { tid: t.dataset.snipe }); $('#sheetWrap').classList.add('center'); return; }

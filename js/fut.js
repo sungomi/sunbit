@@ -47,7 +47,7 @@ async function fLiquidate(sym, trap) {
   const before = S.me, me = clone(before), o = me[f][sym]; delete me[f][sym];
   const keep = Math.round(o.m * (F_LIQ_KEEP[0] + (F_LIQ_KEEP[1] - F_LIQ_KEEP[0]) * Math.random())); me.cash = Math.round((me.cash || 0) + keep);   // 30~50% 돌려받기
   const ok = await kSave(me, before); FQ.busy = false;
-  if (ok) { addFeed({ kind: 'k_fliq', sym, amt: Math.round(o.m - keep), keep, x: o.x, d: o.d }); toast(`💀 ${fAsset(sym).n} ${o.x}배 ${fSide(o)} 청산! 증거금 ${krw(o.m)} 중 ${krw(keep)}(${Math.round(keep / o.m * 100)}%)은 건졌어요`); buzz(150); renderAll(); if (S.sheet) renderSheet(); }
+  if (ok) { addFeed({ kind: 'k_fliq', sym, amt: Math.round(o.m - keep), keep, x: o.x, d: o.d }); toast(`💀 ${fAsset(sym).n} ${o.x}배 ${fSide(o)} 청산! 증거금 ${krw(o.m)} 중 ${krw(keep)}(${Math.round(keep / o.m * 100)}%)은 건졌어요`); buzz(150); if (typeof SFX !== 'undefined') SFX.play('lose'); if (typeof screenFlash === 'function') screenFlash('lose'); renderAll(); if (S.sheet) renderSheet(); }
 }
 /* ───────── 💥 고배율 털기: 수익(ROE) +25% 넘은 고배율 롱·숏 (증거금이 총자산 15% 이상 또는 5억 이상일 때만) → 1초마다 확률로 그 종목 가격이 반대로 꽂혀요 (모두에게) ─────────
    평균 버티는 시간 = 1 ÷ 확률(초): 100배 5초 · 50배 약 7초 · 25배 15초 · 10배 40초. 꽂히는 크기: 50배 이상 25% · 25배 15% · 10배 5% (gm.js shockL)
